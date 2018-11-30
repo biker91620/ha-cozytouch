@@ -1,9 +1,16 @@
 # ha-cozytouch
 Cozytouch support for Home Assistant
 
+# Requirements
+To get started:
+
+    pip install -i https://test.pypi.org/simple/ cozypy
+
+
 ## Cozytouch heaters switch component
 #### Configuration variables:
 **userId** (Required):  Your user id (email)
+
 **userPassword** (Required): Your password
 
 #### Example:
@@ -17,6 +24,7 @@ switch:
 ## Cozytouch climat component
 #### Configuration variables:
 **userId** (Required):  Your user id (email)
+
 **userPassword** (Required): Your password
 
 #### Example:
@@ -31,6 +39,7 @@ climate:
 ## Cozytouch temperature sensor component
 #### Configuration variables:
 **userId** (Required):  Your user id (email)
+
 **userPassword** (Required): Your password
 
 #### Example:
@@ -45,6 +54,7 @@ sensor:
 ## Cozytouch occupancy sensor
 #### Configuration variables:
 **userId** (Required):  Your user id (email)
+
 **userPassword** (Required): Your password
 
 #### Example:
