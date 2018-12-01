@@ -9,6 +9,9 @@ from cozypy.exception import CozytouchException
 from cozypy.constant import DeviceType, DeviceState
 from homeassistant.util import Throttle
 
+
+KW_UNIT = 'kW'
+
 logger = logging.getLogger("cozytouch.sensor")
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
@@ -23,6 +26,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         for sensor in heater.sensors:
             if sensor.widget == DeviceType.TEMPERATURE:
                 devices.append(CozyTouchTemperatureSensor(sensor))
+            elif sensor.widget == DeviceType.ELECTRECITY:
+                devices.append(CozyTouchElectricitySensor(sensor))
 
     logger.info("Found %d sensor" % len(devices))
 
@@ -53,6 +58,39 @@ class CozyTouchTemperatureSensor(Entity):
     def unit_of_measurement(self):
         """Return the unit of measurement."""
         return TEMP_CELSIUS
+
+
+    @Throttle(timedelta(seconds=60))
+    def update(self):
+        logger.info("Update sensor %s" % self.name)
+
+        self.sensor.update()
+
+
+class CozyTouchElectricitySensor(Entity):
+    """Representation of a Sensor."""
+
+    def __init__(self, sensor):
+        """Initialize the sensor."""
+        self.sensor = sensor
+
+    @property
+    def unique_id(self):
+        return self.sensor.id
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return "%s %s" % (self.sensor.place.name, self.sensor.name)
+
+    @property
+    def state(self):
+        return self.sensor.consumption / 1000
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return KW_UNIT
 
 
     @Throttle(timedelta(seconds=60))
