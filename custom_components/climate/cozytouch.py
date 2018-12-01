@@ -21,9 +21,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = CozytouchClient(config.get("userId"), config.get("userPassword"))
     setup = client.get_setup()
     devices = []
-    for place in setup.places:
-        if len(place.heaters):
-            devices.append(CozytouchThermostat(place))
+    for heater in setup.heaters:
+        devices.append(CozytouchThermostat(heater))
 
     logger.info("Found %d thermostat" % len(devices))
 
@@ -38,9 +37,9 @@ DEFAULT_TIME_OFFSET = 7200
 class CozytouchThermostat(ClimateDevice):
     """Representation a Netatmo thermostat."""
 
-    def __init__(self, place):
+    def __init__(self, heater):
         """Initialize the sensor."""
-        self.place = place
+        self.heater = heater
         self._state = None
         self._target_temperature = None
         self._away = None
@@ -48,8 +47,7 @@ class CozytouchThermostat(ClimateDevice):
 
     @property
     def operation_list(self):
-        operations =  self.place.get_state_definition(DeviceType.HEATER, DeviceState.OPERATING_MODE_STATE)
-        return operations
+        return self.heater.operation_list
 
 
     @property
@@ -60,7 +58,7 @@ class CozytouchThermostat(ClimateDevice):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return self.place.label
+        return "%s %s" % (self.heater.place.name, self.heater.name)
 
     @property
     def temperature_unit(self):
@@ -70,17 +68,17 @@ class CozytouchThermostat(ClimateDevice):
     @property
     def current_temperature(self):
         """Return the current temperature."""
-        return self.place.temperature
+        return self.heater.temperature
 
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
-        return self.place.comfort_temperature
+        return self.heater.comfort_temperature
 
     @property
     def current_operation(self):
         """Return the current state of the thermostat."""
-        return self.place.operation_mode
+        return self.heater.operation_mode
     
 
     @property
@@ -106,9 +104,6 @@ class CozytouchThermostat(ClimateDevice):
 
     @Throttle(timedelta(seconds=60))
     def update(self):
-        logger.info("Update thermostat %s" % self.place.label)
-
-        for sensor in self.place.sensors:
+        logger.info("Update thermostat %s" % self.name)
+        for sensor in self.heater.sensors:
             sensor.update()
-        for heater in self.place.heaters:
-            heater.update()

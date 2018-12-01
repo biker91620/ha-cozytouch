@@ -19,8 +19,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = CozytouchClient(config.get("userId"), config.get("userPassword"))
     setup = client.get_setup()
     devices = []
-    for place in setup.places:
-        for sensor in place.sensors:
+    for heater in setup.heaters:
+        for sensor in heater.sensors:
             if sensor.widget == DeviceType.TEMPERATURE:
                 devices.append(CozyTouchTemperatureSensor(sensor))
 
@@ -38,16 +38,16 @@ class CozyTouchTemperatureSensor(Entity):
 
     @property
     def unique_id(self):
-        return self.sensor.oid
+        return self.sensor.id
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return self.sensor.label
+        return "%s %s" % (self.sensor.place.name, self.sensor.name)
 
     @property
     def state(self):
-        return self.sensor.get_state(DeviceState.CURRENT_TEMPERATURE_STATE)
+        return self.sensor.temperature
 
     @property
     def unit_of_measurement(self):
@@ -57,7 +57,7 @@ class CozyTouchTemperatureSensor(Entity):
 
     @Throttle(timedelta(seconds=60))
     def update(self):
-        logger.info("Update sensor %s" % self.sensor.label)
+        logger.info("Update sensor %s" % self.name)
 
         self.sensor.update()
 

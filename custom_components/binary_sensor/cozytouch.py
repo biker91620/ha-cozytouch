@@ -17,8 +17,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = CozytouchClient(config.get("userId"), config.get("userPassword"))
     setup = client.get_setup()
     devices = []
-    for place in setup.places:
-        for sensor in place.sensors:
+    for heater in setup.heaters:
+        for sensor in heater.sensors:
             if sensor.widget == DeviceType.OCCUPANCY:
                 devices.append(CozytouchOccupancySensor(sensor))
 
@@ -34,21 +34,15 @@ class CozytouchOccupancySensor(BinarySensorDevice):
 
     @property
     def unique_id(self):
-        return self.sensor.oid
+        return self.sensor.id
 
     @property
     def name(self):
-        return self.sensor.label
+        return "%s %s" % (self.sensor.place.name, self.sensor.name)
 
     @property
     def is_on(self):
-        state = self.sensor.get_state(DeviceState.OCCUPANCY_STATE)
-        if state is not None:
-            if state == "noPersonInside":
-                return False
-            elif state == "PersonInside":
-                return True
-        return False
+        return self.sensor.is_occupied
 
     @property
     def device_class(self):
@@ -56,7 +50,7 @@ class CozytouchOccupancySensor(BinarySensorDevice):
 
     @Throttle(timedelta(seconds=60))
     def update(self):
-        logger.info("Update binary sensor %s" % self.sensor.label)
+        logger.info("Update binary sensor %s" % self.name)
 
         self.sensor.update()
 

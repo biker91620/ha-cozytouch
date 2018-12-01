@@ -18,9 +18,8 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = CozytouchClient(config.get("userId"), config.get("userPassword"))
     setup = client.get_setup()
     devices = []
-    for place in setup.places:
-        for heater in place.heaters:
-            devices.append(CozytouchSwitch(heater))
+    for heater in setup.heaters:
+        devices.append(CozytouchSwitch(heater))
 
     logger.info("Found %d switch" % len(devices))
     add_devices(devices)
@@ -33,15 +32,15 @@ class CozytouchSwitch(SwitchDevice):
 
     @property
     def unique_id(self):
-        return self.heater.oid
+        return self.heater.id
 
     @property
     def name(self):
-        return self.heater.label
+        return "%s %s" % (self.heater.place.name, self.heater.name)
 
     @property
     def is_on(self):
-        return self.heater.get_state(DeviceState.ON_OFF_STATE)
+        return self.heater.is_on
 
     @property
     def device_class(self):
@@ -65,6 +64,6 @@ class CozytouchSwitch(SwitchDevice):
 
     @Throttle(timedelta(seconds=60))
     def update(self):
-        logger.info("Update switch %s" % self.heater.label)
+        logger.info("Update switch %s" % self.name)
 
         self.heater.update()
