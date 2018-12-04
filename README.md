@@ -4,7 +4,7 @@ Cozytouch support for Home Assistant
 # Requirements
 To get started:
 
-    pip install -i https://test.pypi.org/simple/ cozypy
+    pip install git+https://github.com/biker91620/cozypy.git
 
 
 ## Cozytouch heaters switch component
