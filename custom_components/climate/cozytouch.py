@@ -18,11 +18,20 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     if "userId" not in config or "userPassword" not in config:
         raise CozytouchException("Bad configuration")
+
+    actuator = config["actuator"] if "actuator" in config else "all"
+
     client = CozytouchClient(config.get("userId"), config.get("userPassword"))
     setup = client.get_setup()
     devices = []
     for heater in setup.heaters:
-        devices.append(CozytouchThermostat(heater))
+        if actuator == "all":
+            devices.append(StandaloneCozytouchThermostat(heater))
+        elif actuator == "pass" and heater.widget == DeviceType.HEATER_PASV:
+            devices.append(StandaloneCozytouchThermostat(heater))
+        elif actuator == "i2g" and heater.widget == DeviceType.HEATER:
+            devices.append(StandaloneCozytouchThermostat(heater))
+
 
     logger.info("Found %d thermostat" % len(devices))
 
@@ -32,7 +41,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 DEFAULT_TIME_OFFSET = 7200
 
 
-class CozytouchThermostat(ClimateDevice):
+class StandaloneCozytouchThermostat(ClimateDevice):
     """Representation a Netatmo thermostat."""
 
     def __init__(self, heater):

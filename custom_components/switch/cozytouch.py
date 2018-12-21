@@ -40,7 +40,9 @@ class CozytouchSwitch(SwitchDevice):
 
     @property
     def is_on(self):
-        return self.heater.is_on
+        if self.heater.operation_mode == "off":
+            return False
+        return True
 
     @property
     def device_class(self):
@@ -48,19 +50,19 @@ class CozytouchSwitch(SwitchDevice):
 
     def turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        pass
+        self.heater.set_operation_mode("comfort")
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        pass
+        self.heater.set_operation_mode("comfort")
 
     def turn_off(self, **kwargs):
         """Turn the entity off."""
-        pass
+        self.heater.set_operation_mode("off")
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        pass
+        self.heater.set_operation_mode("off")
 
     @Throttle(timedelta(seconds=60))
     def update(self):
