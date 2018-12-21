@@ -5,7 +5,7 @@ from homeassistant.components.switch import SwitchDevice
 
 from cozypy.client import CozytouchClient
 from cozypy.exception import CozytouchException
-from cozypy.constant import DeviceState
+from cozypy.constant import DeviceType
 from homeassistant.util import Throttle
 
 logger = logging.getLogger("cozytouch.switch")
@@ -18,8 +18,15 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     client = CozytouchClient(config.get("userId"), config.get("userPassword"))
     setup = client.get_setup()
     devices = []
+
+    actuator = config["actuator"] if "actuator" in config else "all"
     for heater in setup.heaters:
-        devices.append(CozytouchSwitch(heater))
+        if actuator == "all":
+            devices.append(CozytouchSwitch(heater))
+        elif actuator == "pass" and heater.widget == DeviceType.HEATER_PASV:
+            devices.append(CozytouchSwitch(heater))
+        elif actuator == "i2g" and heater.widget == DeviceType.HEATER:
+            devices.append(CozytouchSwitch(heater))
 
     logger.info("Found %d switch" % len(devices))
     add_devices(devices)
