@@ -28,8 +28,8 @@ PLATFORM_SCHEMA = vol.Schema({
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Setup the sensor platform."""
 
-    from cozypy.client import CozytouchClient
     from cozypy.constant import DeviceType
+    from cozypy.client import CozytouchClient
 
     # Assign configuration variables. The configuration check takes care they are
     # present.
@@ -51,7 +51,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         elif actuator == "i2g" and heater.widget == DeviceType.HEATER:
             devices.append(CozytouchSwitch(heater))
 
-    _LOGGER.info("Found %d switch" % len(devices))
+    _LOGGER.info("Found {count} switch".format(count=len(devices)))
     add_devices(devices)
 
 
@@ -70,14 +70,12 @@ class CozytouchSwitch(SwitchDevice):
     @property
     def name(self):
         """Return the display name of this switch."""
-        return "%s %s" % (self.heater.place.name, self.heater.name)
+        return "{place} {heater}".format(place=self.heater.place.name, heater=self.heater.name)
 
     @property
     def is_on(self):
         """Return true if switch is on."""
-        if self.heater.operation_mode == "off":
-            return False
-        return True
+        return self.heater.is_on
 
     @property
     def device_class(self):
@@ -86,22 +84,14 @@ class CozytouchSwitch(SwitchDevice):
 
     def turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        self.heater.set_operation_mode("comfort")
-
-    async def async_turn_on(self, **kwargs):
-        """Turn the entity on."""
-        self.heater.set_operation_mode("comfort")
+        self.heater.turn_on()
 
     def turn_off(self, **kwargs):
         """Turn the entity off."""
-        self.heater.set_operation_mode("off")
-
-    async def async_turn_off(self, **kwargs):
-        """Turn the entity off."""
-        self.heater.set_operation_mode("off")
+        self.heater.turn_off()
 
     def update(self):
         """Fetch new state data for this heater."""
-        _LOGGER.info("Update switch %s" % self.name)
+        _LOGGER.info("Update switch {name}".format(name=self.name))
 
         self.heater.update()

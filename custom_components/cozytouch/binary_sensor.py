@@ -12,7 +12,6 @@ _LOGGER = logging.getLogger(__name__)
 # Requires cozytouch client library.
 REQUIREMENTS = [COZYTOUCH_CLIENT_REQUIREMENT]
 
-
 DEFAULT_TIMEOUT = 10
 
 PLATFORM_SCHEMA = vol.Schema({
@@ -21,6 +20,7 @@ PLATFORM_SCHEMA = vol.Schema({
     vol.Required(CONF_PASSWORD): cv.string,
     vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int
 })
+
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Setup the sensor platform."""
@@ -42,7 +42,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         for sensor in [sensor for sensor in heater.sensors if sensor.widget == DeviceType.OCCUPANCY]:
             devices.append(CozytouchOccupancySensor(sensor))
 
-    _LOGGER.info("Found %d binary sensor" % len(devices))
+    _LOGGER.info("Found {count} binary sensor".format(count=len(devices)))
     add_devices(devices)
 
 
@@ -61,7 +61,7 @@ class CozytouchOccupancySensor(BinarySensorDevice):
     @property
     def name(self):
         """Return the display name of this switch."""
-        return "%s %s" % (self.sensor.place.name, self.sensor.name)
+        return "{place} {sensor}".format(place=self.sensor.place.name, sensor=self.sensor.name)
 
     @property
     def is_on(self):
@@ -75,7 +75,7 @@ class CozytouchOccupancySensor(BinarySensorDevice):
 
     def update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.info("Update binary sensor %s" % self.name)
+        _LOGGER.info("Update binary sensor {name}".format(name=self.name))
 
         self.sensor.update()
 

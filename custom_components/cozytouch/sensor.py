@@ -47,7 +47,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             elif sensor.widget == DeviceType.ELECTRECITY:
                 devices.append(CozyTouchElectricitySensor(sensor))
 
-    _LOGGER.info("Found %d switch" % len(devices))
+    _LOGGER.info("Found {count} sensors".format(count=len(devices)))
     add_devices(devices)
 
 
@@ -66,7 +66,7 @@ class CozyTouchTemperatureSensor(Entity):
     @property
     def name(self):
         """Return the display name of this switch."""
-        return "%s %s" % (self.sensor.place.name, self.sensor.name)
+        return "{place} {sensor}".format(place=self.sensor.place.name, sensor=self.sensor.name)
 
     @property
     def state(self):
@@ -81,7 +81,7 @@ class CozyTouchTemperatureSensor(Entity):
 
     def update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.info("Update sensor %s" % self.name)
+        _LOGGER.info("Update sensor {name}".format(name=self.name))
 
         self.sensor.update()
 
@@ -101,7 +101,7 @@ class CozyTouchElectricitySensor(Entity):
     @property
     def name(self):
         """Return the display name of this switch."""
-        return "%s %s" % (self.sensor.place.name, self.sensor.name)
+        return "{place} {sensor}".format(place=self.sensor.place.name, sensor=self.sensor.name)
 
     @property
     def state(self):
@@ -113,10 +113,9 @@ class CozyTouchElectricitySensor(Entity):
         """Return the unit of measurement."""
         return KW_UNIT
 
-
     def update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.info("Update sensor %s" % self.name)
+        _LOGGER.info("Update sensor {name}".format(name=self.name))
 
         self.sensor.update()
 
