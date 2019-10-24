@@ -2,7 +2,8 @@ import logging
 import voluptuous as vol
 from homeassistant.components.climate import const
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
+from homeassistant.components.climate import PLATFORM_SCHEMA
 from homeassistant.helpers import config_validation as cv
 from homeassistant.components import climate
 from homeassistant.const import TEMP_CELSIUS
@@ -18,14 +19,17 @@ DEFAULT_TIMEOUT = 10
 DEFAULT_TIME_OFFSET = 7200
 KW_UNIT = 'kW'
 
+DEFAULT_SCAN_INTERVAL = 60
+
 CONF_COZYTOUCH_ACTUATOR = "actuator"
 
-PLATFORM_SCHEMA = vol.Schema({
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_PLATFORM): cv.string,
     vol.Required(CONF_USERNAME): cv.string,
     vol.Required(CONF_PASSWORD): cv.string,
     vol.Optional(CONF_COZYTOUCH_ACTUATOR, default="all"): cv.string,
-    vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int
+    vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int,
+    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period_seconds
 })
 
 
@@ -195,4 +199,3 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
         """Fetch new state data for this sensor."""
         _LOGGER.info("Update thermostat {name}".format(name=self.name))
         self.heater.update()
-

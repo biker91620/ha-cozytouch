@@ -2,7 +2,8 @@ import logging
 import voluptuous as vol
 
 from homeassistant.components.binary_sensor import BinarySensorDevice
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
+from homeassistant.components.sensor import PLATFORM_SCHEMA
 import homeassistant.helpers.config_validation as cv
 
 from custom_components.cozytouch import COZYTOUCH_CLIENT_REQUIREMENT
@@ -14,11 +15,14 @@ REQUIREMENTS = [COZYTOUCH_CLIENT_REQUIREMENT]
 
 DEFAULT_TIMEOUT = 10
 
-PLATFORM_SCHEMA = vol.Schema({
+DEFAULT_SCAN_INTERVAL = 60
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_PLATFORM): cv.string,
     vol.Required(CONF_USERNAME): cv.string,
     vol.Required(CONF_PASSWORD): cv.string,
-    vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int
+    vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int,
+    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period_seconds
 })
 
 
