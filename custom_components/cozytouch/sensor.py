@@ -1,5 +1,6 @@
 import logging
 import voluptuous as vol
+import cozypy
 
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.helpers.entity import Entity
@@ -7,12 +8,7 @@ from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CON
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.helpers import config_validation as cv
 
-from custom_components.cozytouch import COZYTOUCH_CLIENT_REQUIREMENT
-
 _LOGGER = logging.getLogger(__name__)
-
-# Requires cozytouch client library.
-REQUIREMENTS = [COZYTOUCH_CLIENT_REQUIREMENT]
 
 DEFAULT_TIMEOUT = 10
 KW_UNIT = 'kW'
