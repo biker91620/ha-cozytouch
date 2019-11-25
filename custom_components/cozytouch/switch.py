@@ -1,5 +1,6 @@
 import logging
 import voluptuous as vol
+import cozypy
 
 from homeassistant.components.switch import SwitchDevice
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
@@ -9,9 +10,6 @@ import homeassistant.helpers.config_validation as cv
 from custom_components.cozytouch import COZYTOUCH_CLIENT_REQUIREMENT
 
 _LOGGER = logging.getLogger(__name__)
-
-# Requires cozytouch client library.
-REQUIREMENTS = [COZYTOUCH_CLIENT_REQUIREMENT]
 
 DEFAULT_TIMEOUT = 10
 
