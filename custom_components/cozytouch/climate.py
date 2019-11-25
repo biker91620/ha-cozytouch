@@ -1,14 +1,13 @@
 import logging
 import voluptuous as vol
-from homeassistant.components.climate import const
+import cozypy
 
+from homeassistant.components.climate import const
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
 from homeassistant.components.climate import PLATFORM_SCHEMA
 from homeassistant.helpers import config_validation as cv
 from homeassistant.components import climate
 from homeassistant.const import TEMP_CELSIUS
-
-from custom_components.cozytouch import COZYTOUCH_CLIENT_REQUIREMENT
 
 _LOGGER = logging.getLogger(__name__)
 
