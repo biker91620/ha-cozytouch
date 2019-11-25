@@ -21,6 +21,7 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         self.username = None
         self.password = None
+        self.timeout = DEFAULT_TIMEOUT
 
     async def async_step_import(self, import_config):
         """Import a config entry from configuration.yaml."""
@@ -32,7 +33,7 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         data_schema = vol.Schema(
             {
-                vol.Required(CONF_USERNAME, default=DEFAULT_USERNAME): str,
+                vol.Required(CONF_USERNAME): str,
                 vol.Required(CONF_PASSWORD): str,
             }
         )
@@ -42,7 +43,7 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self.password = user_input["password"]
 
             try:
-                client = CozytouchClient(username, password, timeout)
+                client = CozytouchClient(self.username, self.password, self.timeout)
                 setup = client.get_setup()
                
             except CozytouchException:
@@ -61,14 +62,14 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         errors = {}
         entry_id = self.hass.config_entries.async_entries(DOMAIN)
-        self.box_id = "cozytouch_012345678"
-        if self.box_id:
-            if entry_id and entry_id.get("data", {}).get("id", 0) == self.box_id:
+        self.bridge_id = "cozytouch_012345678"
+        if self.bridge_id:
+            if entry_id and entry_id.get("data", {}).get("id", 0) == self.bridge_id:
                 self.hass.config_entries.async_remove(entry_id)
             return self.async_create_entry(
-                title=f"{TEMPLATE_SENSOR}",
+                title="Cozytouch",
                 data={
-                    "id": self.box_id,
+                    "id": self.bridge_id,
                     "username": self.username,
                     "password": self.password,
                 },
