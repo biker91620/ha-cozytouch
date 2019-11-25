@@ -12,9 +12,6 @@ from custom_components.cozytouch import COZYTOUCH_CLIENT_REQUIREMENT
 
 _LOGGER = logging.getLogger(__name__)
 
-# Requires cozytouch client library.
-REQUIREMENTS = [COZYTOUCH_CLIENT_REQUIREMENT]
-
 DEFAULT_TIMEOUT = 10
 DEFAULT_TIME_OFFSET = 7200
 KW_UNIT = 'kW'
