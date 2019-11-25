@@ -1,12 +1,11 @@
 import logging
 import voluptuous as vol
+import cozypy
 
 from homeassistant.components.binary_sensor import BinarySensorDevice
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 import homeassistant.helpers.config_validation as cv
-
-from custom_components.cozytouch import COZYTOUCH_CLIENT_REQUIREMENT
 
 _LOGGER = logging.getLogger(__name__)
 
