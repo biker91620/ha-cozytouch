@@ -1,14 +1,22 @@
 """Config flow to configure Cozytouch."""
+import logging
 import voluptuous as vol
-import cozypy
+
 from cozypy.exception import CozytouchException
+from cozypy.client import CozytouchClient
 
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 
-DEFAULT_TIMEOUT = 10
-DOMAIN = "cozytouch"
+from .const import DOMAIN, DEFAULT_TIMEOUT
+
+DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
+    }
+)
 
 class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a Cozytouch config flow."""
@@ -25,22 +33,16 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, import_config):
         """Import a config entry from configuration.yaml."""
+
         return await self.async_step_user(import_config)
 
     async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
 
         errors = {}
-        data_schema = vol.Schema(
-            {
-                vol.Required(CONF_USERNAME): str,
-                vol.Required(CONF_PASSWORD): str,
-            }
-        )
-
         if user_input is not None:
-            self.username = user_input["username"]
-            self.password = user_input["password"]
+            self.username = user_input[CONF_USERNAME]
+            self.password = user_input[CONF_PASSWORD]
 
             try:
                 client = CozytouchClient(self.username, self.password, self.timeout)
@@ -54,7 +56,7 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors = {}
 
         return self.async_show_form(
-            step_id="user", data_schema=data_schema, errors=errors
+            step_id="user", data_schema=DATA_SCHEMA, errors=errors
         )
 
     async def async_step_register(self, user_input=None):
@@ -70,8 +72,9 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 title="Cozytouch",
                 data={
                     "id": self.bridge_id,
-                    "username": self.username,
-                    "password": self.password,
+                    CONF_USERNAME: self.username,
+                    CONF_PASSWORD: self.password,
+                    CONF_TIMEOUT: self.timeout,
                 },
             )
         return self.async_show_form(step_id="register", errors=errors)
