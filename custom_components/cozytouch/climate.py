@@ -1,39 +1,23 @@
+"""Climate sensors for Cozytouch."""
 import logging
 import voluptuous as vol
-import cozypy
 
+from cozypy.client import CozytouchClient
+from cozypy.constant import DeviceType
+
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT, CONF_SCAN_INTERVAL
 from homeassistant.components.climate import const
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
-from homeassistant.components.climate import PLATFORM_SCHEMA
-from homeassistant.helpers import config_validation as cv
 from homeassistant.components import climate
 from homeassistant.const import TEMP_CELSIUS
 
+from .const import DOMAIN
+
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 10
-DEFAULT_TIME_OFFSET = 7200
-KW_UNIT = 'kW'
 
-DEFAULT_SCAN_INTERVAL = 60
-
-CONF_COZYTOUCH_ACTUATOR = "actuator"
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_PLATFORM): cv.string,
-    vol.Required(CONF_USERNAME): cv.string,
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Optional(CONF_COZYTOUCH_ACTUATOR, default="all"): cv.string,
-    vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int,
-    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period_seconds
-})
-
-
-def setup_platform(hass, config, add_devices, discovery_info=None):
+async def async_setup_entry(hass, config, async_add_entities):
     """Setup the sensor platform."""
 
-    from cozypy.client import CozytouchClient
-    from cozypy.constant import DeviceType
 
     # Assign configuration variables. The configuration check takes care they are
     # present.
@@ -51,8 +35,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 
     _LOGGER.info("Found {count} thermostat".format(count=len(devices)))
-
-    add_devices(devices)
+    async_add_entities(devices, True)
 
 
 class StandaloneCozytouchThermostat(climate.ClimateDevice):
@@ -195,3 +178,14 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
         """Fetch new state data for this sensor."""
         _LOGGER.info("Update thermostat {name}".format(name=self.name))
         self.heater.update()
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+
+        return {
+            "name": self.name,
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "manufacturer": "Cozytouch",
+            "via_device": (DOMAIN, "cozytouch"),
+        }

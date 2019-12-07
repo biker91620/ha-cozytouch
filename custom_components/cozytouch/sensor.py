@@ -1,34 +1,24 @@
+"""Sensors for Cozytouch."""
 import logging
 import voluptuous as vol
-import cozypy
 
+from cozypy.client import CozytouchClient
+from cozypy.constant import DeviceType
+
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT, CONF_SCAN_INTERVAL
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
-from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.helpers import config_validation as cv
+
+from .const import (
+    DOMAIN, 
+    KW_UNIT,
+    )
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 10
-KW_UNIT = 'kW'
 
-DEFAULT_SCAN_INTERVAL = 60
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_PLATFORM): cv.string,
-    vol.Required(CONF_USERNAME): cv.string,
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int,
-    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period_seconds
-})
-
-
-def setup_platform(hass, config, add_devices, discovery_info=None):
+async def async_setup_entry(hass, config, async_add_entities):
     """Setup the sensor platform."""
-
-    from cozypy.client import CozytouchClient
-    from cozypy.constant import DeviceType
 
     # Assign configuration variables. The configuration check takes care they are
     # present.
@@ -48,7 +38,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
                 devices.append(CozyTouchElectricitySensor(sensor))
 
     _LOGGER.info("Found {count} sensors".format(count=len(devices)))
-    add_devices(devices)
+    async_add_entities(devices, True)
 
 
 class CozyTouchTemperatureSensor(Entity):
@@ -84,6 +74,17 @@ class CozyTouchTemperatureSensor(Entity):
 
         self.sensor.update()
 
+    @property
+    def device_info(self):
+        """Return the device info."""
+
+        return {
+            "name": self.name,
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "manufacturer": "Cozytouch",
+            "via_device": (DOMAIN, "cozytouch"),
+        }
+
 
 class CozyTouchElectricitySensor(Entity):
     """Representation of an electricity Sensor."""
@@ -118,3 +119,13 @@ class CozyTouchElectricitySensor(Entity):
 
         self.sensor.update()
 
+    @property
+    def device_info(self):
+        """Return the device info."""
+
+        return {
+            "name": self.name,
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "manufacturer": "Cozytouch",
+            "via_device": (DOMAIN, "cozytouch"),
+        }
