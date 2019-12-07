@@ -2,12 +2,12 @@
   "domain": "cozytouch",
   "name": "Cozytouch",
   "config_flow": false,
-  "documentation": "https://www.home-assistant.io/components/livebox",
+  "documentation": "https://www.home-assistant.io/components/cozytouch",
   "requirements": [
     "cozypy==1.1.1"
   ],
   "dependencies": [],
   "codeowners": [
-    "@biker91620"
+    "@biker91620","@cyr-ius"
   ]
 }
