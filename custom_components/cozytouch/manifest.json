@@ -1,7 +1,7 @@
 {
   "domain": "cozytouch",
   "name": "Cozytouch",
-  "config_flow": false,
+  "config_flow": true,
   "documentation": "https://www.home-assistant.io/components/cozytouch",
   "requirements": [
     "cozypy==1.1.1"
