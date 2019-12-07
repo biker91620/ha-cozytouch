@@ -2,5 +2,5 @@
   "name": "Cozytouch",
   "country": "FR",
   "domains": ["binary_sensor", "sensor", "climate", "water_heater", "switch"],
-  "homeassistant": "0.102.3"
+  "homeassistant": "0.99.9"
 }
