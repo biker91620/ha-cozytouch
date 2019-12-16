@@ -51,7 +51,6 @@ async def async_setup_entry(hass, config_entry):
     if setup:
         device_registry = await dr.async_get_registry(hass)
         for bridge in setup.data["gateways"]:
-            # ~ _LOGGER.info(bridge)
             device_registry.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
                 identifiers={(DOMAIN, bridge["placeOID"])},

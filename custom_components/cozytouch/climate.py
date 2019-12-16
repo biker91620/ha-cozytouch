@@ -214,5 +214,5 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.info("Update thermostat {name}".format(name=self.name))
+        _LOGGER.debug("Update thermostat {name}".format(name=self.name))
         await self.heater.async_update()

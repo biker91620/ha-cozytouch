@@ -77,7 +77,7 @@ class CozytouchSwitch(SwitchDevice):
 
     async def async_update(self):
         """Fetch new state data for this heater."""
-        _LOGGER.info("Update switch {name}".format(name=self.name))
+        _LOGGER.debug("Update switch {name}".format(name=self.name))
         await self.heater.async_update()
 
     @property

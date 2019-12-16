@@ -59,7 +59,7 @@ BOOST_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIME_PERIOD): vol.All(
-            cv.positive_int, vol.Range(min=1, max=7)
+            cv.positive_int, vol.Range(min=0, max=7)
         ),
     }
 )

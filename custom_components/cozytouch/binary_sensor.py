@@ -66,7 +66,7 @@ class CozytouchOccupancySensor(BinarySensorDevice):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.info("Update binary sensor {name}".format(name=self.name))
+        _LOGGER.debug("Update binary sensor {name}".format(name=self.name))
         await self.sensor.async_update()
 
     @property
