@@ -225,7 +225,7 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.info("Update water heater {name}".format(name=self.name))
+        _LOGGER.debug("Update water heater {name}".format(name=self.name))
         await self.water_heater.async_update()
 
     @property
