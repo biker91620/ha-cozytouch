@@ -2,21 +2,19 @@
 import logging
 import voluptuous as vol
 
-from cozypy.exception import CozytouchException
-from cozypy.client import CozytouchClient
+from cozytouchpy import CozytouchClient
 
 from homeassistant import config_entries
-from homeassistant.core import callback
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 
 from .const import DOMAIN, DEFAULT_TIMEOUT
 
 DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_USERNAME): str,
-        vol.Required(CONF_PASSWORD): str,
-    }
+    {vol.Required(CONF_USERNAME): str, vol.Required(CONF_PASSWORD): str}
 )
+
+_LOGGER = logging.getLogger(__name__)
+
 
 class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a Cozytouch config flow."""
@@ -33,7 +31,6 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, import_config):
         """Import a config entry from configuration.yaml."""
-
         return await self.async_step_user(import_config)
 
     async def async_step_user(self, user_input=None):
@@ -46,9 +43,12 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 client = CozytouchClient(self.username, self.password, self.timeout)
-                setup = client.get_setup()
-               
-            except CozytouchException:
+                setup = await client.async_get_setup()
+
+                if setup:
+                    return await self.async_step_register()
+            except Exception:
+                _LOGGER.info("Error Login {}".format(self.username))
                 errors["base"] = "login_inccorect"
 
         # If there was no user input, do not show the errors.

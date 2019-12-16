@@ -1,34 +1,31 @@
 """Switch for Cozytouch."""
 import logging
-import voluptuous as vol
 
-from cozypy.constant import DeviceType
-from cozypy.client import CozytouchClient
+from cozytouchpy.constant import DeviceType
+from cozytouchpy import CozytouchClient
 
 from homeassistant.components.switch import SwitchDevice
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_PLATFORM, CONF_TIMEOUT, CONF_SCAN_INTERVAL
-import homeassistant.helpers.config_validation as cv
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 
 from .const import DOMAIN, CONF_COZYTOUCH_ACTUATOR
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config, async_add_entities):
-    """Setup the sensor platform."""
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    """Set the sensor platform."""
 
     # Assign configuration variables. The configuration check takes care they are
     # present.
-    username = config.get(CONF_USERNAME)
-    password = config.get(CONF_PASSWORD)
-    timeout = config.get(CONF_TIMEOUT)
+    username = config_entry.data.get(CONF_USERNAME)
+    password = config_entry.data.get(CONF_PASSWORD)
+    timeout = config_entry.data.get(CONF_TIMEOUT)
     actuator = CONF_COZYTOUCH_ACTUATOR
 
     # Setup cozytouch client
     client = CozytouchClient(username, password, timeout)
-    setup = client.get_setup()
+    setup = await client.async_get_setup()
     devices = []
-
     for heater in setup.heaters:
         if actuator == "all":
             devices.append(CozytouchSwitch(heater))
@@ -38,7 +35,7 @@ async def async_setup_entry(hass, config, async_add_entities):
             devices.append(CozytouchSwitch(heater))
 
     _LOGGER.info("Found {count} switch".format(count=len(devices)))
-    add_devices(devices)
+    async_add_entities(devices, True)
 
 
 class CozytouchSwitch(SwitchDevice):
@@ -56,7 +53,9 @@ class CozytouchSwitch(SwitchDevice):
     @property
     def name(self):
         """Return the display name of this switch."""
-        return "{place} {heater}".format(place=self.heater.place.name, heater=self.heater.name)
+        return "{place} {heater}".format(
+            place=self.heater.place.name, heater=self.heater.name
+        )
 
     @property
     def is_on(self):
@@ -68,19 +67,18 @@ class CozytouchSwitch(SwitchDevice):
         """Return the device class."""
         return "heat"
 
-    def turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        self.heater.turn_on()
+        await self.heater.async_turn_on()
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        self.heater.turn_off()
+        await self.heater.async_turn_off()
 
-    def update(self):
+    async def async_update(self):
         """Fetch new state data for this heater."""
         _LOGGER.info("Update switch {name}".format(name=self.name))
-
-        self.heater.update()
+        await self.heater.async_update()
 
     @property
     def device_info(self):
@@ -90,5 +88,5 @@ class CozytouchSwitch(SwitchDevice):
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
             "manufacturer": "Cozytouch",
-            "via_device": (DOMAIN, "cozytouch"),
+            "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }

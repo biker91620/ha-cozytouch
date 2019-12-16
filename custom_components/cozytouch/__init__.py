@@ -1,9 +1,8 @@
 """The cozytouch component."""
 import logging
-from datetime import timedelta
 import voluptuous as vol
 
-from cozypy.client import CozytouchClient
+from cozytouchpy import CozytouchClient
 
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
 from homeassistant.helpers import config_validation as cv, device_registry as dr
@@ -39,20 +38,27 @@ async def async_setup(hass, config):
 
     return True
 
+
 async def async_setup_entry(hass, config_entry):
     """Set up Cozytouch as config entry."""
 
-    config = CozytouchClient(config_entry["username"], config_entry["password"], config_entry["timeout"])
-    if config:
+    config = CozytouchClient(
+        config_entry.data["username"],
+        config_entry.data["password"],
+        config_entry.data["timeout"],
+    )
+    setup = await config.async_get_setup()
+    if setup:
         device_registry = await dr.async_get_registry(hass)
-        device_registry.async_get_or_create(
-            config_entry_id=config_entry.entry_id,
-            identifiers={(DOMAIN, config_entry.data["id"])},
-            manufacturer=config["Manufacturer"],
-            name=config["ProductClass"],
-            model=config["ModelName"],
-            sw_version=config["SoftwareVersion"],
-        )
+        for bridge in setup.data["gateways"]:
+            # ~ _LOGGER.info(bridge)
+            device_registry.async_get_or_create(
+                config_entry_id=config_entry.entry_id,
+                identifiers={(DOMAIN, bridge["placeOID"])},
+                manufacturer="Atlantic/Thermor",
+                name="Cozytouch",
+                sw_version=bridge["connectivity"]["protocolVersion"],
+            )
 
         for component in COMPONENTS:
             hass.async_create_task(
@@ -71,4 +77,3 @@ async def async_unload_entry(hass, config_entry):
             hass.config_entries.async_forward_entry_unload(config_entry, component)
         )
     return True
-
