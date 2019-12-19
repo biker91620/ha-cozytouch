@@ -1,6 +1,6 @@
 # Cozytouch
 This a *custom component* for [Home Assistant](https://www.home-assistant.io/). 
-[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=biker91620_ha-cozytouch&metric=alert_status)](https://sonarcloud.io/dashboard?id=biker91620_ha-cozytouch)
+
 
 There is currently support for the following device types within Home Assistant:
 
@@ -11,7 +11,7 @@ There is currently support for the following device types within Home Assistant:
 
 ![GitHub release](https://img.shields.io/github/release/Cyr-ius/hass-cozytouch)
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
-
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=biker91620_ha-cozytouch&metric=alert_status)](https://sonarcloud.io/dashboard?id=biker91620_ha-cozytouch)
 
 
 ## Configuration
