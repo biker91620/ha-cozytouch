@@ -1,7 +1,9 @@
 # ha-cozytouch
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=biker91620_ha-cozytouch&metric=alert_status)](https://sonarcloud.io/dashboard?id=biker91620_ha-cozytouch)
 
-Cozytouch support for Home Assistant
+Cozytouch support for Home Assistant (**DEPRECATED**)
+
+**This custom integration will be converted as an official integration soon**
 
 # Requirements
 To get started:
