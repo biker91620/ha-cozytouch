@@ -84,6 +84,11 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
         return self._support_flags
 
     @property
+    def unique_id(self):
+        """Return the unique id of this sensor."""
+        return self.heater.id
+    
+    @property
     def name(self):
         """Return the name of the sensor."""
         return "{place} {heater}".format(
@@ -108,7 +113,7 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
             "manufacturer": "Cozytouch",
-            "via_device": {(DOMAIN, self.water_heater.data["placeOID"])},
+            "via_device": (DOMAIN, self.heater.data["placeOID"]),
         }
 
     @property
