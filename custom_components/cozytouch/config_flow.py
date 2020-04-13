@@ -27,7 +27,6 @@ async def validate_input(hass: core.HomeAssistant, data):
     """
 
     try:
-        _LOGGER.debug(data)
         CozytouchClient(data[CONF_USERNAME], data[CONF_PASSWORD], data[CONF_TIMEOUT])
     except CozytouchException as excpt:
         raise CozytouchException(excpt)

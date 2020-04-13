@@ -5,5 +5,5 @@
     "documentation": "https://www.home-assistant.io/components/cozytouch",
     "requirements": ["cozytouchpy==1.5.0"],
     "dependencies": [],
-    "codeowners": ["@biker91620", "@cyr-ius"],
+    "codeowners": ["@biker91620", "@cyr-ius"]
 }
