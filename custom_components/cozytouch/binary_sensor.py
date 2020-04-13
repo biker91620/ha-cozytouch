@@ -1,13 +1,11 @@
 """Binary sensors for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchClient
 from cozytouchpy.constant import DeviceType
 
 from homeassistant.components.binary_sensor import BinarySensorDevice
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 
-from .const import DOMAIN
+from .const import DOMAIN, COZYTOUCH_DATAS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,17 +13,10 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
 
-    # Assign configuration variables. The configuration check takes care they are
-    # present.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Setup cozytouch client
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for heater in setup.heaters:
+    for heater in datas.heaters:
         for sensor in [
             sensor for sensor in heater.sensors if sensor.widget == DeviceType.OCCUPANCY
         ]:

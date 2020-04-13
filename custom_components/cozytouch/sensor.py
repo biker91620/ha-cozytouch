@@ -1,17 +1,12 @@
 """Sensors for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchClient
 from cozytouchpy.constant import DeviceType
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.helpers.entity import Entity
 
-from .const import (
-    DOMAIN,
-    KW_UNIT,
-)
+from .const import DOMAIN, COZYTOUCH_DATAS, KW_UNIT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,24 +14,17 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
 
-    # Assign configuration variables.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Setup cozytouch client
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for heater in setup.heaters:
-        _LOGGER.debug(heater)
+    for heater in datas.heaters:
         for sensor in heater.sensors:
-            _LOGGER.debug(sensor)
             if sensor.widget == DeviceType.TEMPERATURE:
                 devices.append(CozyTouchTemperatureSensor(sensor))
             elif sensor.widget == DeviceType.ELECTRECITY:
                 devices.append(CozyTouchElectricitySensor(sensor))
-    for water_heater in setup.water_heaters:
+
+    for water_heater in datas.water_heaters:
         for sensor in water_heater.sensors:
             if sensor.widget == DeviceType.TEMPERATURE:
                 devices.append(CozyTouchTemperatureSensor(sensor))

@@ -4,6 +4,7 @@ import logging
 LOGGER = logging.getLogger(__package__)
 
 DOMAIN = "cozytouch"
+COZYTOUCH_DATAS = "cozy_datas"
 COMPONENTS = ["sensor", "binary_sensor", "climate", "switch", "water_heater"]
 DEFAULT_TIMEOUT = 10
 DEFAULT_SCAN_INTERVAL = 60

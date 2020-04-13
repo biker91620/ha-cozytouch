@@ -1,7 +1,6 @@
 """Climate sensors for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchClient
 from cozytouchpy.constant import (
     DeviceType,
     DeviceState,
@@ -9,12 +8,11 @@ from cozytouchpy.constant import (
     TargetingHeatingLevelState,
 )
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 from homeassistant.components.climate import const
 from homeassistant.components import climate
 from homeassistant.const import TEMP_CELSIUS
 
-from .const import DOMAIN
+from .const import DOMAIN, COZYTOUCH_DATAS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,16 +20,10 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
 
-    # Assign configuration variables.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Setup cozytouch client.
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for heater in setup.heaters:
+    for heater in datas.heaters:
         if heater.widget == DeviceType.HEATER:
             devices.append(StandaloneCozytouchThermostat(heater))
 

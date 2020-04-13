@@ -2,13 +2,14 @@
 import logging
 import voluptuous as vol
 
-from cozytouchpy import CozytouchClient
+from cozytouchpy import CozytouchClient, CozytouchException
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
-from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
+from homeassistant.helpers import device_registry as dr
 from homeassistant.config_entries import SOURCE_IMPORT
 
-from .const import DOMAIN, COMPONENTS
+
+from .const import DOMAIN, COMPONENTS, COZYTOUCH_DATAS, DEFAULT_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,8 +17,9 @@ CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
-                vol.Required(CONF_USERNAME): cv.string,
-                vol.Required(CONF_PASSWORD): cv.string,
+                vol.Required(CONF_USERNAME): str,
+                vol.Required(CONF_PASSWORD): str,
+                vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): int,
             }
         )
     },
@@ -27,14 +29,16 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass, config):
     """Load configuration for Cozytouch component."""
+    hass.data.setdefault(DOMAIN, {})
 
-    if not hass.config_entries.async_entries(DOMAIN) and DOMAIN in config:
-        cozytouch_config = config[DOMAIN]
-        hass.async_create_task(
-            hass.config_entries.flow.async_init(
-                DOMAIN, context={"source": SOURCE_IMPORT}, data=cozytouch_config
-            )
+    if hass.config_entries.async_entries(DOMAIN) or DOMAIN not in config:
+        return True
+
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_IMPORT}, data=config[DOMAIN]
         )
+    )
 
     return True
 
@@ -42,30 +46,37 @@ async def async_setup(hass, config):
 async def async_setup_entry(hass, config_entry):
     """Set up Cozytouch as config entry."""
 
-    config = CozytouchClient(
-        config_entry.data["username"],
-        config_entry.data["password"],
-        config_entry.data["timeout"],
-    )
+    try:
+        config = CozytouchClient(
+            config_entry.data[CONF_USERNAME],
+            config_entry.data[CONF_PASSWORD],
+            config_entry.data[CONF_TIMEOUT],
+        )
+    except CozytouchException:
+        return False
+
     setup = await config.async_get_setup()
-    if setup:
-        device_registry = await dr.async_get_registry(hass)
-        for bridge in setup.data["gateways"]:
-            device_registry.async_get_or_create(
-                config_entry_id=config_entry.entry_id,
-                identifiers={(DOMAIN, bridge["placeOID"])},
-                manufacturer="Atlantic/Thermor",
-                name="Cozytouch",
-                sw_version=bridge["connectivity"]["protocolVersion"],
-            )
+    if setup is None:
+        return False
 
-        for component in COMPONENTS:
-            hass.async_create_task(
-                hass.config_entries.async_forward_entry_setup(config_entry, component)
-            )
-        return True
+    hass.data[DOMAIN][config_entry.entry_id] = {COZYTOUCH_DATAS: setup}
 
-    return False
+    device_registry = await dr.async_get_registry(hass)
+    for bridge in setup.data.get("gateways"):
+        device_registry.async_get_or_create(
+            config_entry_id=config_entry.entry_id,
+            identifiers={(DOMAIN, bridge["placeOID"])},
+            manufacturer="Atlantic/Thermor",
+            name="Cozytouch",
+            sw_version=bridge["connectivity"]["protocolVersion"],
+        )
+
+    for component in COMPONENTS:
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(config_entry, component)
+        )
+
+    return True
 
 
 async def async_unload_entry(hass, config_entry):
@@ -75,4 +86,5 @@ async def async_unload_entry(hass, config_entry):
         hass.async_create_task(
             hass.config_entries.async_forward_entry_unload(config_entry, component)
         )
+
     return True
