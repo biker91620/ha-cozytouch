@@ -1,26 +1,19 @@
 {
-  "config": {
-    "title": "Cozytouch",
-    "step": {
-      "user": {
-        "title": "Check your cozytouch",
-        "data": {
-          "username": "Username",
-          "password": "Password"
-        }
-      },
-      "register": {
-          "title": "Cozytouch",
-	  "description":"Register cozytouch."
-      }
-    },
-    "error": {
-      "login_inccorect": "User or password inccorect",
-      "linking": "Unknown linking error occurred."
-    },
-    "abort": {
-      "unknown": "Unknown error occurred",
-      "cannot_connect": "Unable to connect to the cozytouch."
-    }
-  }
+	"config": {
+		"title": "Cozytouch",
+		"step": {
+			"user": {
+				"title": "Add your cozytouch",
+				"data": {
+					"username": "Username",
+					"password": "Password",
+					"timeout" : "Tiemout"
+				}
+			}
+		},
+		"error": {
+			"login_inccorect": "User or password inccorect",
+			"unknown": "Unknown error occurred"
+		}
+	}
 }

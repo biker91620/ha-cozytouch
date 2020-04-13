@@ -1,0 +1,20 @@
+{
+	"config": {
+		"title": "Cozytouch",
+		"step": {
+			"user": {
+				"title": "Ajout du pont Cozytouch",
+				"description": "Svp, saisisser votre adresse mail et mot de passe.",
+				"data": {
+					"username": "Email",
+					"password": "Mot de passe",
+					"timeout" : "Tiemout"
+				}
+			}
+		},
+		"error": {
+			"login_inccorect": "Utilisateur ou mot de passe incorrect.",
+			"unknown": "Erreur inconnue."
+		}
+	}
+}
