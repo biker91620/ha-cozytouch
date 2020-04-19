@@ -67,7 +67,7 @@ class CozyTouchTemperatureSensor(Entity):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update sensor {name}".format(name=self.name))
-        await self.sensor.async_update()
+        await self.hass.async_add_executor_job(self.sensor.update)
 
     @property
     def device_info(self):
@@ -113,7 +113,7 @@ class CozyTouchElectricitySensor(Entity):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update sensor {name}".format(name=self.name))
-        await self.sensor.async_update()
+        await self.hass.async_add_executor_job(self.sensor.update)
 
     @property
     def device_info(self):

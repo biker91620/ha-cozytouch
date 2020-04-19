@@ -153,16 +153,21 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
 
     async def async_turn_away_mode_on(self):
         """Turn away on."""
-        await self.heater.async_turn_away_mode_on()
+        await self.hass.async_add_executor_job(
+            self.heater.turn_away_mode_on
+        )
 
     async def async_turn_away_mode_off(self):
         """Turn away off."""
-        await self.heater.async_turn_away_mode_off()
+        await self.hass.async_add_executor_job(
+            self.heater.turn_away_mode_off
+        )
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if const.ATTR_TARGET_TEMP_HIGH in kwargs:
-            await self.heater.async_set_comfort_temperature(
+            await self.hass.async_add_executor_job(
+                self.heater.set_comfort_temperature,
                 kwargs[const.ATTR_TARGET_TEMP_HIGH]
             )
             _LOGGER.info(
@@ -171,7 +176,8 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
                 )
             )
         if const.ATTR_TARGET_TEMP_LOW in kwargs:
-            await self.heater.async_set_eco_temperature(
+            await self.hass.async_add_executor_job(
+                self.heater.set_eco_temperature,
                 kwargs[const.ATTR_TARGET_TEMP_LOW]
             )
             _LOGGER.info(
@@ -182,29 +188,41 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
         """Set new target hvac mode. HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_OFF."""
 
         if hvac_mode == const.HVAC_MODE_OFF:
-            await self.heater.async_set_operating_mode(OperatingModeState.STANDBY)
+            await self.hass.async_add_executor_job(
+                self.heater.set_operating_mode,
+                OperatingModeState.STANDBY
+            )
         elif hvac_mode == const.HVAC_MODE_HEAT:
-            await self.heater.async_set_operating_mode(OperatingModeState.BASIC)
+            await self.hass.async_add_executor_job(
+                self.heater.set_operating_mode,
+                OperatingModeState.BASIC
+            )            
         elif hvac_mode == const.HVAC_MODE_AUTO:
-            await self.heater.async_set_operating_mode(OperatingModeState.INTERNAL)
+            await self.hass.async_add_executor_job(
+                self.heater.set_operating_mode,
+                OperatingModeState.INTERNAL
+            )            
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
 
         if preset_mode == const.PRESET_SLEEP:
-            await self.heater.async_set_targeting_heating_level(
+            await self.hass.async_add_executor_job(
+                self.heater.set_targeting_heating_level,
                 TargetingHeatingLevelState.FROST_PROTECTION
             )
         elif preset_mode == const.PRESET_ECO:
-            await self.heater.async_set_targeting_heating_level(
+            await self.hass.async_add_executor_job(
+                self.heater.set_targeting_heating_level,
                 TargetingHeatingLevelState.ECO
             )
         elif preset_mode == const.PRESET_COMFORT:
-            await self.heater.async_set_targeting_heating_level(
+            await self.hass.async_add_executor_job(
+                self.heater.set_targeting_heating_level,
                 TargetingHeatingLevelState.COMFORT
             )
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update thermostat {name}".format(name=self.name))
-        await self.heater.async_update()
+        await self.hass.async_add_executor_job(self.heater.update)

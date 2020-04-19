@@ -55,7 +55,7 @@ async def async_setup_entry(hass, config_entry):
     except CozytouchException:
         return False
 
-    setup = await config.async_get_setup()
+    setup = await hass.async_add_executor_job(config.get_setup)
     if setup is None:
         return False
 

@@ -61,16 +61,16 @@ class CozytouchSwitch(SwitchDevice):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        await self.heater.async_turn_on()
+        await self.hass.async_add_executor_job(self.heater.turn_on)
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        await self.heater.async_turn_off()
+        await self.hass.async_add_executor_job(self.heater.turn_off)
 
     async def async_update(self):
         """Fetch new state data for this heater."""
         _LOGGER.debug("Update switch {name}".format(name=self.name))
-        await self.heater.async_update()
+        await self.hass.async_add_executor_job(self.heater.update)
 
     @property
     def device_info(self):
