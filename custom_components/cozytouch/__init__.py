@@ -2,7 +2,11 @@
 import logging
 import voluptuous as vol
 
-from cozytouchpy import CozytouchClient, CozytouchException
+from cozytouchpy import (
+    CozytouchClient,
+    CozytouchException,
+    CozytouchAuthentificationFailed,
+)
 
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 from homeassistant.helpers import device_registry as dr
@@ -47,15 +51,18 @@ async def async_setup_entry(hass, config_entry):
     """Set up Cozytouch as config entry."""
 
     try:
-        config = CozytouchClient(
+        cozytouch = CozytouchClient(
             config_entry.data[CONF_USERNAME],
             config_entry.data[CONF_PASSWORD],
             config_entry.data[CONF_TIMEOUT],
         )
+        await hass.async_add_executor_job(cozytouch.connect)
     except CozytouchException:
         return False
+    except CozytouchAuthentificationFailed:
+        return False
 
-    setup = await hass.async_add_executor_job(config.get_setup)
+    setup = await hass.async_add_executor_job(cozytouch.get_setup)
     if setup is None:
         return False
 

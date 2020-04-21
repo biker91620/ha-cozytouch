@@ -83,8 +83,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         for device in devices:
             if device.entity_id == entity_id:
                 await hass.async_add_executor_job(
-                    device.async_set_away_mode,
-                    service.data[ATTR_TIME_PERIOD]
+                    device.async_set_away_mode, service.data[ATTR_TIME_PERIOD]
                 )
 
     async def async_service_boost_mode(service):
@@ -92,9 +91,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         entity_id = service.data.get(ATTR_ENTITY_ID)
         for device in devices:
             if device.entity_id == entity_id:
-                await self.hass.async_add_executor_job(
-                    device.async_set_boost_mode, 
-                    service.data[ATTR_TIME_PERIOD]
+                await hass.async_add_executor_job(
+                    device.async_set_boost_mode, service.data[ATTR_TIME_PERIOD]
                 )
 
     hass.services.async_register(
@@ -190,33 +188,25 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
     async def async_set_operation_mode(self, operation_mode):
         """Set new target operation mode."""
         await self.hass.async_add_executor_job(
-            self.water_heater.set_operating_mode,
-            HASS_TO_COZY_STATE[operation_mode]
+            self.water_heater.set_operating_mode, HASS_TO_COZY_STATE[operation_mode]
         )
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         self._target_temperature = kwargs.get(ATTR_TEMPERATURE)
         await self.hass.async_add_executor_job(
-            self.water_heater.set_temperature,
-            self._target_temperature
+            self.water_heater.set_temperature, self._target_temperature
         )
 
     async def async_set_away_mode(self, period):
         """Turn away on."""
         _LOGGER.debug("Set away mode for {} days".format(period))
-        await self.hass.async_add_executor_job(
-            self.water_heater.set_away_mode,
-            period
-        )
+        await self.hass.async_add_executor_job(self.water_heater.set_away_mode, period)
 
     async def async_set_boost_mode(self, period):
         """Turn away on."""
         _LOGGER.debug("Set boost mode for {} days".format(period))
-        await self.hass.async_add_executor_job(
-            self.water_heater.set_boost_mode,
-            period
-        )
+        await self.hass.async_add_executor_job(self.water_heater.set_boost_mode, period)
 
     async def async_turn_boost_mode_off(self):
         """Turn away off."""
