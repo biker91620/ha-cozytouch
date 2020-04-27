@@ -3,7 +3,7 @@ import logging
 
 from cozytouchpy.constant import DeviceType
 
-from homeassistant.components.switch import SwitchDevice
+from homeassistant.components.switch import SwitchEntity
 
 from .const import DOMAIN, COZYTOUCH_DATAS, CONF_COZYTOUCH_ACTUATOR
 
@@ -12,7 +12,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
-
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
     actuator = CONF_COZYTOUCH_ACTUATOR
@@ -30,7 +29,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(devices, True)
 
 
-class CozytouchSwitch(SwitchDevice):
+class CozytouchSwitch(SwitchEntity):
     """Header switch (on/off)."""
 
     def __init__(self, heater):
@@ -75,10 +74,9 @@ class CozytouchSwitch(SwitchDevice):
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
             "manufacturer": "Cozytouch",
-            "via_device": (DOMAIN, self.sensor.data["placeOID"]),
+            "via_device": (DOMAIN, self.heater.data["placeOID"]),
         }
