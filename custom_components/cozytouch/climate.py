@@ -31,7 +31,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(devices, True)
 
 
-class StandaloneCozytouchThermostat(climate.ClimateDevice):
+class StandaloneCozytouchThermostat(climate.ClimateEntity):
     """Representation a Netatmo thermostat."""
 
     def __init__(self, heater):
