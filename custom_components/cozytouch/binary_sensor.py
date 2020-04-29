@@ -12,7 +12,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
-
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
     devices = []
@@ -20,7 +19,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         for sensor in [
             sensor for sensor in heater.sensors if sensor.widget == DeviceType.OCCUPANCY
         ]:
-            devices.append(CozytouchOccupancySensor(sensor))
+            devices.append(CozytouchOccupancySensor(sensor, heater))
 
     _LOGGER.info("Found {count} binary sensor".format(count=len(devices)))
     async_add_entities(devices, True)
@@ -29,9 +28,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class CozytouchOccupancySensor(BinarySensorEntity):
     """Occupancy sensor (present/not present)."""
 
-    def __init__(self, sensor):
+    def __init__(self, sensor, device):
         """Initialize occupancy sensor."""
         self.sensor = sensor
+        self.ref_id = device.id
+        self.ref_name = device.name
 
     @property
     def unique_id(self):
@@ -63,10 +64,9 @@ class CozytouchOccupancySensor(BinarySensorEntity):
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
-            "name": self.name,
-            "identifiers": {(DOMAIN, self.unique_id)},
+            "name": self.ref_name,
+            "identifiers": {(DOMAIN, self.ref_id)},
             "manufacturer": "Cozytouch",
             "via_device": {(DOMAIN, self.sensor.data["placeOID"])},
         }

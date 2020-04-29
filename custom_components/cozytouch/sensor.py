@@ -13,23 +13,22 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
-
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
     devices = []
     for heater in datas.heaters:
         for sensor in heater.sensors:
             if sensor.widget == DeviceType.TEMPERATURE:
-                devices.append(CozyTouchTemperatureSensor(sensor))
+                devices.append(CozyTouchTemperatureSensor(sensor, heater))
             elif sensor.widget == DeviceType.ELECTRECITY:
-                devices.append(CozyTouchElectricitySensor(sensor))
+                devices.append(CozyTouchElectricitySensor(sensor, heater))
 
     for water_heater in datas.water_heaters:
         for sensor in water_heater.sensors:
             if sensor.widget == DeviceType.TEMPERATURE:
-                devices.append(CozyTouchTemperatureSensor(sensor))
+                devices.append(CozyTouchTemperatureSensor(sensor, water_heater))
             elif sensor.widget == DeviceType.ELECTRECITY:
-                devices.append(CozyTouchElectricitySensor(sensor))
+                devices.append(CozyTouchElectricitySensor(sensor, water_heater))
 
     _LOGGER.info("Found {count} sensors".format(count=len(devices)))
     async_add_entities(devices, True)
@@ -38,9 +37,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class CozyTouchTemperatureSensor(Entity):
     """Representation of a temperature sensor."""
 
-    def __init__(self, sensor):
+    def __init__(self, sensor, device):
         """Initialize temperature sensor."""
         self.sensor = sensor
+        self.ref_id = device.id
+        self.ref_name = device.name
 
     @property
     def unique_id(self):
@@ -72,10 +73,9 @@ class CozyTouchTemperatureSensor(Entity):
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
-            "name": self.name,
-            "identifiers": {(DOMAIN, self.unique_id)},
+            "name": self.ref_name,
+            "identifiers": {(DOMAIN, self.ref_id)},
             "manufacturer": "Cozytouch",
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
@@ -84,9 +84,11 @@ class CozyTouchTemperatureSensor(Entity):
 class CozyTouchElectricitySensor(Entity):
     """Representation of an electricity Sensor."""
 
-    def __init__(self, sensor):
+    def __init__(self, sensor, device):
         """Initialize the sensor."""
         self.sensor = sensor
+        self.ref_id = device.id
+        self.ref_name = device.name
 
     @property
     def unique_id(self):
@@ -118,10 +120,9 @@ class CozyTouchElectricitySensor(Entity):
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
-            "name": self.name,
-            "identifiers": {(DOMAIN, self.unique_id)},
+            "name": self.ref_name,
+            "identifiers": {(DOMAIN, self.ref_id)},
             "manufacturer": "Cozytouch",
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
