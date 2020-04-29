@@ -31,7 +31,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class StandaloneCozytouchThermostat(climate.ClimateEntity):
-    """Representation a Netatmo thermostat."""
+    """Representation a thermostat."""
 
     def __init__(self, heater):
         """Initialize the sensor."""
@@ -69,9 +69,9 @@ class StandaloneCozytouchThermostat(climate.ClimateEntity):
             self.__set_support_flags(const.SUPPORT_TARGET_TEMPERATURE)
 
     @property
-    def supported_features(self):
-        """Return the list of supported features."""
-        return self._support_flags
+    def unique_id(self):
+        """Return the unique id of this switch."""
+        return self.heater.id
 
     @property
     def name(self):
@@ -79,6 +79,11 @@ class StandaloneCozytouchThermostat(climate.ClimateEntity):
         return "{place} {heater}".format(
             place=self.heater.place.name, heater=self.heater.name
         )
+
+    @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        return self._support_flags
 
     @property
     def temperature_unit(self):
