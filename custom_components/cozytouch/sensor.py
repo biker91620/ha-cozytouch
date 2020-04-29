@@ -42,6 +42,7 @@ class CozyTouchTemperatureSensor(Entity):
         self.sensor = sensor
         self.ref_id = device.id
         self.ref_name = device.name
+        self.ref_manufacturer = device.manufacturer
 
     @property
     def unique_id(self):
@@ -76,7 +77,7 @@ class CozyTouchTemperatureSensor(Entity):
         return {
             "name": self.ref_name,
             "identifiers": {(DOMAIN, self.ref_id)},
-            "manufacturer": "Cozytouch",
+            "manufacturer": self.ref_manufacturer,
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
 
@@ -89,6 +90,7 @@ class CozyTouchElectricitySensor(Entity):
         self.sensor = sensor
         self.ref_id = device.id
         self.ref_name = device.name
+        self.ref_manufacturer = device.manufacturer
 
     @property
     def unique_id(self):
@@ -123,6 +125,6 @@ class CozyTouchElectricitySensor(Entity):
         return {
             "name": self.ref_name,
             "identifiers": {(DOMAIN, self.ref_id)},
-            "manufacturer": "Cozytouch",
+            "manufacturer": self.ref_manufacturer,
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
