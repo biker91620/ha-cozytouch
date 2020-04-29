@@ -1,19 +1,16 @@
 """The cozytouch component."""
+import asyncio
 import logging
+
 import voluptuous as vol
+from cozytouchpy import (CozytouchAuthentificationFailed, CozytouchClient,
+                         CozytouchException)
 
-from cozytouchpy import (
-    CozytouchClient,
-    CozytouchException,
-    CozytouchAuthentificationFailed,
-)
-
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
-from homeassistant.helpers import device_registry as dr
 from homeassistant.config_entries import SOURCE_IMPORT
+from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
+from homeassistant.helpers import device_registry as dr
 
-
-from .const import DOMAIN, COMPONENTS, COZYTOUCH_DATAS, DEFAULT_TIMEOUT
+from .const import COMPONENTS, COZYTOUCH_DATAS, DEFAULT_TIMEOUT, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,10 +75,16 @@ async def async_setup_entry(hass, config_entry):
 
 async def async_unload_entry(hass, config_entry):
     """Unload a config entry."""
-    for component in COMPONENTS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_unload(config_entry, component)
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(config_entry, component)
+                for component in COMPONENTS
+            ]
         )
+    )
+    if unload_ok:
+        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return True
 
