@@ -66,7 +66,6 @@ BOOST_MODE_SCHEMA = vol.Schema(
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
-
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
     devices = []
@@ -231,7 +230,6 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
