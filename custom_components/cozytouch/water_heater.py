@@ -1,30 +1,21 @@
 """Climate sensors for Cozytouch."""
 import logging
+
 import voluptuous as vol
+from cozytouchpy import CozytouchException
+from cozytouchpy.constant import DeviceState, DeviceType
 
-from cozytouchpy.constant import DeviceType, DeviceState
-
-from homeassistant.components.water_heater import (
-    WaterHeaterDevice,
-    ATTR_TEMPERATURE,
-    SUPPORT_OPERATION_MODE,
-    SUPPORT_AWAY_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
-    STATE_ECO,
-    STATE_ON,
-)
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import TEMP_CELSIUS, ATTR_ENTITY_ID
+from homeassistant.components.water_heater import (ATTR_TEMPERATURE, STATE_ECO,
+                                                   STATE_ON, SUPPORT_AWAY_MODE,
+                                                   SUPPORT_OPERATION_MODE,
+                                                   SUPPORT_TARGET_TEMPERATURE,
+                                                   WaterHeaterDevice)
+from homeassistant.const import ATTR_ENTITY_ID, TEMP_CELSIUS
 
-from .const import (
-    DOMAIN,
-    COZYTOUCH_DATAS,
-    STATE_AUTO,
-    STATE_MANUEL,
-    SERVICE_SET_AWAY_MODE,
-    SERVICE_SET_BOOST_MODE,
-    ATTR_TIME_PERIOD,
-)
+from .const import (ATTR_TIME_PERIOD, COZYTOUCH_DATAS, DOMAIN,
+                    SERVICE_SET_AWAY_MODE, SERVICE_SET_BOOST_MODE, STATE_AUTO,
+                    STATE_MANUEL)
 
 DEFAULT_MIN_TEMP = 50
 DEFAULT_MAX_TEMP = 62
@@ -225,7 +216,10 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update water heater {name}".format(name=self.name))
-        await self.hass.async_add_executor_job(self.water_heater.update)
+        try:
+            await self.hass.async_add_executor_job(self.water_heater.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):

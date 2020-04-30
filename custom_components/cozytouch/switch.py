@@ -1,11 +1,12 @@
 """Switch for Cozytouch."""
 import logging
 
+from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
 from homeassistant.components.switch import SwitchDevice
 
-from .const import DOMAIN, COZYTOUCH_DATAS, CONF_COZYTOUCH_ACTUATOR
+from .const import CONF_COZYTOUCH_ACTUATOR, COZYTOUCH_DATAS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,7 +70,10 @@ class CozytouchSwitch(SwitchDevice):
     async def async_update(self):
         """Fetch new state data for this heater."""
         _LOGGER.debug("Update switch {name}".format(name=self.name))
-        await self.hass.async_add_executor_job(self.heater.update)
+        try:
+            await self.hass.async_add_executor_job(self.heater.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):

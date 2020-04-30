@@ -1,12 +1,13 @@
 """Sensors for Cozytouch."""
 import logging
 
+from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.helpers.entity import Entity
 
-from .const import DOMAIN, COZYTOUCH_DATAS, KW_UNIT
+from .const import COZYTOUCH_DATAS, DOMAIN, KW_UNIT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,7 +70,10 @@ class CozyTouchTemperatureSensor(Entity):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update sensor {name}".format(name=self.name))
-        await self.hass.async_add_executor_job(self.sensor.update)
+        try:
+            await self.hass.async_add_executor_job(self.sensor.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):

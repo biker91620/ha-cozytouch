@@ -1,18 +1,15 @@
 """Climate sensors for Cozytouch."""
 import logging
 
-from cozytouchpy.constant import (
-    DeviceType,
-    DeviceState,
-    OperatingModeState,
-    TargetingHeatingLevelState,
-)
+from cozytouchpy import CozytouchException
+from cozytouchpy.constant import (DeviceState, DeviceType, OperatingModeState,
+                                  TargetingHeatingLevelState)
 
-from homeassistant.components.climate import const
 from homeassistant.components import climate
+from homeassistant.components.climate import const
 from homeassistant.const import TEMP_CELSIUS
 
-from .const import DOMAIN, COZYTOUCH_DATAS
+from .const import COZYTOUCH_DATAS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -214,4 +211,7 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update thermostat {name}".format(name=self.name))
-        await self.hass.async_add_executor_job(self.heater.update)
+        try:
+            await self.hass.async_add_executor_job(self.heater.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))

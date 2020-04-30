@@ -1,11 +1,12 @@
 """Binary sensors for Cozytouch."""
 import logging
 
+from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
 from homeassistant.components.binary_sensor import BinarySensorDevice
 
-from .const import DOMAIN, COZYTOUCH_DATAS
+from .const import COZYTOUCH_DATAS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +61,10 @@ class CozytouchOccupancySensor(BinarySensorDevice):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update binary sensor {name}".format(name=self.name))
-        await self.hass.async_add_executor_job(self.sensor.update)
+        try:
+            await self.hass.async_add_executor_job(self.sensor.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):
