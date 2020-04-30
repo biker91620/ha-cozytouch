@@ -73,5 +73,5 @@ class CozytouchOccupancySensor(BinarySensorDevice):
             "name": self.ref_name,
             "identifiers": {(DOMAIN, self.ref_id)},
             "manufacturer": self.ref_manufacturer,
-            "via_device": {(DOMAIN, self.sensor.data["placeOID"])},
+            "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
