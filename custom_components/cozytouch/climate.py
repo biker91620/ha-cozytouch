@@ -1,37 +1,25 @@
 """Climate sensors for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchClient
-from cozytouchpy.constant import (
-    DeviceType,
-    DeviceState,
-    OperatingModeState,
-    TargetingHeatingLevelState,
-)
+from cozytouchpy import CozytouchException
+from cozytouchpy.constant import (DeviceState, DeviceType, OperatingModeState,
+                                  TargetingHeatingLevelState)
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
-from homeassistant.components.climate import const
 from homeassistant.components import climate
+from homeassistant.components.climate import const
 from homeassistant.const import TEMP_CELSIUS
 
-from .const import DOMAIN
+from .const import COZYTOUCH_DATAS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Assign configuration variables.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
-
-    # Setup cozytouch client.
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for heater in setup.heaters:
+    for heater in datas.heaters:
         if heater.widget == DeviceType.HEATER:
             devices.append(StandaloneCozytouchThermostat(heater))
 
@@ -40,7 +28,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class StandaloneCozytouchThermostat(climate.ClimateDevice):
-    """Representation a Netatmo thermostat."""
+    """Representation a thermostat."""
 
     def __init__(self, heater):
         """Initialize the sensor."""
@@ -68,7 +56,6 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
 
     def __load_features(self):
         """Return the list of supported features."""
-
         if self.heater.is_state_supported(DeviceState.TARGETING_HEATING_LEVEL_STATE):
             self.__set_support_flags(const.SUPPORT_PRESET_MODE)
         if self.heater.is_state_supported(
@@ -79,9 +66,9 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
             self.__set_support_flags(const.SUPPORT_TARGET_TEMPERATURE)
 
     @property
-    def supported_features(self):
-        """Return the list of supported features."""
-        return self._support_flags
+    def unique_id(self):
+        """Return the unique id of this switch."""
+        return self.heater.id
 
     @property
     def unique_id(self):
@@ -96,6 +83,11 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
         )
 
     @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        return self._support_flags
+
+    @property
     def temperature_unit(self):
         """Return the unit of measurement."""
         return TEMP_CELSIUS
@@ -108,7 +100,6 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
@@ -129,7 +120,6 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
     @property
     def hvac_mode(self):
         """Return hvac target hvac state."""
-
         if self.heater.operating_mode == OperatingModeState.STANDBY:
             return const.HVAC_MODE_OFF
         elif self.heater.operating_mode == OperatingModeState.BASIC:
@@ -166,17 +156,17 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
 
     async def async_turn_away_mode_on(self):
         """Turn away on."""
-        await self.heater.async_turn_away_mode_on()
+        await self.hass.async_add_executor_job(self.heater.turn_away_mode_on)
 
     async def async_turn_away_mode_off(self):
         """Turn away off."""
-        await self.heater.async_turn_away_mode_off()
+        await self.hass.async_add_executor_job(self.heater.turn_away_mode_off)
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if const.ATTR_TARGET_TEMP_HIGH in kwargs:
-            await self.heater.async_set_comfort_temperature(
-                kwargs[const.ATTR_TARGET_TEMP_HIGH]
+            await self.hass.async_add_executor_job(
+                self.heater.set_comfort_temperature, kwargs[const.ATTR_TARGET_TEMP_HIGH]
             )
             _LOGGER.info(
                 "Set HIGH TEMP to {temp}".format(
@@ -184,8 +174,8 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
                 )
             )
         if const.ATTR_TARGET_TEMP_LOW in kwargs:
-            await self.heater.async_set_eco_temperature(
-                kwargs[const.ATTR_TARGET_TEMP_LOW]
+            await self.hass.async_add_executor_job(
+                self.heater.set_eco_temperature, kwargs[const.ATTR_TARGET_TEMP_LOW]
             )
             _LOGGER.info(
                 "Set LOW TEMP to {temp}".format(temp=kwargs[const.ATTR_TARGET_TEMP_LOW])
@@ -193,31 +183,40 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
 
     async def async_set_hvac_mode(self, hvac_mode: str) -> None:
         """Set new target hvac mode. HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_OFF."""
-
         if hvac_mode == const.HVAC_MODE_OFF:
-            await self.heater.async_set_operating_mode(OperatingModeState.STANDBY)
+            await self.hass.async_add_executor_job(
+                self.heater.set_operating_mode, OperatingModeState.STANDBY
+            )
         elif hvac_mode == const.HVAC_MODE_HEAT:
-            await self.heater.async_set_operating_mode(OperatingModeState.BASIC)
+            await self.hass.async_add_executor_job(
+                self.heater.set_operating_mode, OperatingModeState.BASIC
+            )
         elif hvac_mode == const.HVAC_MODE_AUTO:
-            await self.heater.async_set_operating_mode(OperatingModeState.INTERNAL)
+            await self.hass.async_add_executor_job(
+                self.heater.set_operating_mode, OperatingModeState.INTERNAL
+            )
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
-
         if preset_mode == const.PRESET_SLEEP:
-            await self.heater.async_set_targeting_heating_level(
-                TargetingHeatingLevelState.FROST_PROTECTION
+            await self.hass.async_add_executor_job(
+                self.heater.set_targeting_heating_level,
+                TargetingHeatingLevelState.FROST_PROTECTION,
             )
         elif preset_mode == const.PRESET_ECO:
-            await self.heater.async_set_targeting_heating_level(
-                TargetingHeatingLevelState.ECO
+            await self.hass.async_add_executor_job(
+                self.heater.set_targeting_heating_level, TargetingHeatingLevelState.ECO
             )
         elif preset_mode == const.PRESET_COMFORT:
-            await self.heater.async_set_targeting_heating_level(
-                TargetingHeatingLevelState.COMFORT
+            await self.hass.async_add_executor_job(
+                self.heater.set_targeting_heating_level,
+                TargetingHeatingLevelState.COMFORT,
             )
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update thermostat {name}".format(name=self.name))
-        await self.heater.async_update()
+        try:
+            await self.hass.async_add_executor_job(self.heater.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))

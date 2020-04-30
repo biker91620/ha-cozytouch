@@ -1,47 +1,35 @@
 """Sensors for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchClient
+from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.helpers.entity import Entity
 
-from .const import (
-    DOMAIN,
-    KW_UNIT,
-)
+from .const import COZYTOUCH_DATAS, DOMAIN, KW_UNIT
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Assign configuration variables.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
-
-    # Setup cozytouch client
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for heater in setup.heaters:
-        _LOGGER.debug(heater)
+    for heater in datas.heaters:
         for sensor in heater.sensors:
-            _LOGGER.debug(sensor)
             if sensor.widget == DeviceType.TEMPERATURE:
-                devices.append(CozyTouchTemperatureSensor(sensor))
+                devices.append(CozyTouchTemperatureSensor(sensor, heater))
             elif sensor.widget == DeviceType.ELECTRECITY:
-                devices.append(CozyTouchElectricitySensor(sensor))
-    for water_heater in setup.water_heaters:
+                devices.append(CozyTouchElectricitySensor(sensor, heater))
+
+    for water_heater in datas.water_heaters:
         for sensor in water_heater.sensors:
             if sensor.widget == DeviceType.TEMPERATURE:
-                devices.append(CozyTouchTemperatureSensor(sensor))
+                devices.append(CozyTouchTemperatureSensor(sensor, water_heater))
             elif sensor.widget == DeviceType.ELECTRECITY:
-                devices.append(CozyTouchElectricitySensor(sensor))
+                devices.append(CozyTouchElectricitySensor(sensor, water_heater))
 
     _LOGGER.info("Found {count} sensors".format(count=len(devices)))
     async_add_entities(devices, True)
@@ -50,9 +38,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class CozyTouchTemperatureSensor(Entity):
     """Representation of a temperature sensor."""
 
-    def __init__(self, sensor):
+    def __init__(self, sensor, device):
         """Initialize temperature sensor."""
         self.sensor = sensor
+        self.ref_id = device.id
+        self.ref_name = device.name
+        self.ref_manufacturer = device.manufacturer
 
     @property
     def unique_id(self):
@@ -79,16 +70,18 @@ class CozyTouchTemperatureSensor(Entity):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update sensor {name}".format(name=self.name))
-        await self.sensor.async_update()
+        try:
+            await self.hass.async_add_executor_job(self.sensor.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
-            "name": self.name,
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "manufacturer": "Cozytouch",
+            "name": self.ref_name,
+            "identifiers": {(DOMAIN, self.ref_id)},
+            "manufacturer": self.ref_manufacturer,
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
 
@@ -96,9 +89,12 @@ class CozyTouchTemperatureSensor(Entity):
 class CozyTouchElectricitySensor(Entity):
     """Representation of an electricity Sensor."""
 
-    def __init__(self, sensor):
+    def __init__(self, sensor, device):
         """Initialize the sensor."""
         self.sensor = sensor
+        self.ref_id = device.id
+        self.ref_name = device.name
+        self.ref_manufacturer = device.manufacturer
 
     @property
     def unique_id(self):
@@ -125,15 +121,14 @@ class CozyTouchElectricitySensor(Entity):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update sensor {name}".format(name=self.name))
-        await self.sensor.async_update()
+        await self.hass.async_add_executor_job(self.sensor.update)
 
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
-            "name": self.name,
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "manufacturer": "Cozytouch",
+            "name": self.ref_name,
+            "identifiers": {(DOMAIN, self.ref_id)},
+            "manufacturer": self.ref_manufacturer,
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }

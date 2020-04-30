@@ -1,31 +1,21 @@
 """Climate sensors for Cozytouch."""
 import logging
+
 import voluptuous as vol
+from cozytouchpy import CozytouchException
+from cozytouchpy.constant import DeviceState, DeviceType
 
-from cozytouchpy import CozytouchClient
-from cozytouchpy.constant import DeviceType, DeviceState
-
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
-from homeassistant.components.water_heater import (
-    WaterHeaterDevice,
-    ATTR_TEMPERATURE,
-    SUPPORT_OPERATION_MODE,
-    SUPPORT_AWAY_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
-    STATE_ECO,
-    STATE_ON,
-)
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import TEMP_CELSIUS, ATTR_ENTITY_ID
+from homeassistant.components.water_heater import (ATTR_TEMPERATURE, STATE_ECO,
+                                                   STATE_ON, SUPPORT_AWAY_MODE,
+                                                   SUPPORT_OPERATION_MODE,
+                                                   SUPPORT_TARGET_TEMPERATURE,
+                                                   WaterHeaterDevice)
+from homeassistant.const import ATTR_ENTITY_ID, TEMP_CELSIUS
 
-from .const import (
-    DOMAIN,
-    STATE_AUTO,
-    STATE_MANUEL,
-    SERVICE_SET_AWAY_MODE,
-    SERVICE_SET_BOOST_MODE,
-    ATTR_TIME_PERIOD,
-)
+from .const import (ATTR_TIME_PERIOD, COZYTOUCH_DATAS, DOMAIN,
+                    SERVICE_SET_AWAY_MODE, SERVICE_SET_BOOST_MODE, STATE_AUTO,
+                    STATE_MANUEL)
 
 DEFAULT_MIN_TEMP = 50
 DEFAULT_MAX_TEMP = 62
@@ -67,17 +57,10 @@ BOOST_MODE_SCHEMA = vol.Schema(
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Assign configuration variables.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
-
-    # Setup cozytouch client
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for water_heater in setup.water_heaters:
+    for water_heater in datas.water_heaters:
         if water_heater.widget == DeviceType.WATER_HEATER:
             devices.append(StandaloneCozytouchWaterHeater(water_heater))
 
@@ -89,18 +72,23 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         entity_id = service.data.get(ATTR_ENTITY_ID)
         for device in devices:
             if device.entity_id == entity_id:
-                await device.async_set_away_mode(service.data[ATTR_TIME_PERIOD])
+                await hass.async_add_executor_job(
+                    device.async_set_away_mode, service.data[ATTR_TIME_PERIOD]
+                )
 
     async def async_service_boost_mode(service):
         """Handle away mode service."""
         entity_id = service.data.get(ATTR_ENTITY_ID)
         for device in devices:
             if device.entity_id == entity_id:
-                await device.async_set_boost_mode(service.data[ATTR_TIME_PERIOD])
+                await hass.async_add_executor_job(
+                    device.async_set_boost_mode, service.data[ATTR_TIME_PERIOD]
+                )
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_AWAY_MODE, async_service_away_mode, schema=AWAY_MODE_SCHEMA
     )
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_BOOST_MODE,
@@ -110,7 +98,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
-    """Representation a Netatmo thermostat."""
+    """Representation a Water Heater."""
 
     def __init__(self, water_heater):
         """Initialize the sensor."""
@@ -189,55 +177,57 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
 
     async def async_set_operation_mode(self, operation_mode):
         """Set new target operation mode."""
-        return await self.water_heater.async_set_operating_mode(
-            HASS_TO_COZY_STATE[operation_mode]
+        await self.hass.async_add_executor_job(
+            self.water_heater.set_operating_mode, HASS_TO_COZY_STATE[operation_mode]
         )
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         self._target_temperature = kwargs.get(ATTR_TEMPERATURE)
-        return await self.water_heater.async_set_temperature(self._target_temperature)
+        await self.hass.async_add_executor_job(
+            self.water_heater.set_temperature, self._target_temperature
+        )
 
     async def async_set_away_mode(self, period):
         """Turn away on."""
         _LOGGER.debug("Set away mode for {} days".format(period))
-        await self.water_heater.async_set_away_mode(period)
+        await self.hass.async_add_executor_job(self.water_heater.set_away_mode, period)
 
     async def async_set_boost_mode(self, period):
         """Turn away on."""
         _LOGGER.debug("Set boost mode for {} days".format(period))
-        await self.water_heater.async_set_boost_mode(period)
+        await self.hass.async_add_executor_job(self.water_heater.set_boost_mode, period)
 
     async def async_turn_boost_mode_off(self):
         """Turn away off."""
         _LOGGER.debug("Turn off boost mode")
-        await self.water_heater.async_set_boost_mode(0)
+        await self.async_set_boost_mode(0)
 
     async def async_turn_away_mode_on(self):
         """Turn away on."""
         _LOGGER.debug("Turn on away mode")
-        await self.water_heater.async_set_away_mode(1)
+        await self.async_set_away_mode(1)
 
     async def async_turn_away_mode_off(self):
         """Turn away off."""
         _LOGGER.debug("Turn off away mode")
-        await self.water_heater.async_set_away_mode(0)
+        await self.async_set_away_mode(0)
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update water heater {name}".format(name=self.name))
-        await self.water_heater.async_update()
+        try:
+            await self.hass.async_add_executor_job(self.water_heater.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
-            "manufacturer": self.water_heater.get_state(
-                DeviceState.MANUFACTURER_NAME_STATE
-            ),
+            "manufacturer": self.water_heater.manufacturer,
             "model": self.water_heater.get_state(DeviceState.DHW_CAPACITY_STATE),
             "via_device": (DOMAIN, self.water_heater.data["placeOID"]),
         }
@@ -248,8 +238,7 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
         attributes = {
             "energy_demand": self.water_heater.get_state(
                 DeviceState.OPERATING_MODE_CAPABILITIES_STATE
-            )["energyDemandStatus"]
-            == 1,
+            )["energyDemandStatus"] == 1,
             "aways_mode_duration": self.water_heater.get_state(
                 DeviceState.AWAY_MODE_DURATION_STATE
             ),
@@ -276,40 +265,31 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
             ),
             "power_electrical": int(
                 self.water_heater.get_state(DeviceState.POWER_HEAT_ELECTRICAL_STATE)
-            )
-            / 1000,
+            ) / 1000,
             "power_heatpump": int(
                 self.water_heater.get_state(DeviceState.POWER_HEAT_PUMP_STATE)
-            )
-            / 1000,
+            ) / 1000,
             "efficiency": round(
                 (
                     int(
                         self.water_heater.get_state(
                             DeviceState.HEAT_PUMP_OPERATING_TIME_STATE
                         )
-                    )
-                    / (
+                    ) / (
                         int(
                             self.water_heater.get_state(
                                 DeviceState.ELECTRIC_BOOSTER_OPERATING_TIME_STATE
                             )
-                        )
-                        + int(
+                        ) + int(
                             self.water_heater.get_state(
                                 DeviceState.HEAT_PUMP_OPERATING_TIME_STATE
                             )
                         )
                     )
-                )
-                * 100
+                ) * 100
             ),
             "showers_remaining": round(
-                (self.current_temperature - 10)
-                / 30
-                / 1.33
-                * int(self.water_heater.get_state(DeviceState.DHW_CAPACITY_STATE))
-                / 40
+                (self.current_temperature - 10) / 30 / 1.33 * int(self.water_heater.get_state(DeviceState.DHW_CAPACITY_STATE)) / 40
             ),
         }
 
