@@ -1,0 +1,19 @@
+{
+	"config": {
+		"title": "Cozytouch",
+		"step": {
+			"user": {
+				"title": "Add your cozytouch",
+				"data": {
+					"username": "Username",
+					"password": "Password",
+					"timeout" : "Tiemout"
+				}
+			}
+		},
+		"error": {
+			"login_inccorect": "User or password inccorect",
+			"unknown": "Unknown error occurred"
+		}
+	}
+}

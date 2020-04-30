@@ -1,35 +1,27 @@
 """Switch for Cozytouch."""
 import logging
 
+from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
-from cozytouchpy import CozytouchClient
 
 from homeassistant.components.switch import SwitchDevice
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 
-from .const import DOMAIN, CONF_COZYTOUCH_ACTUATOR
+from .const import CONF_COZYTOUCH_ACTUATOR, COZYTOUCH_DATAS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Assign configuration variables. The configuration check takes care they are
-    # present.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
     actuator = CONF_COZYTOUCH_ACTUATOR
 
-    # Setup cozytouch client
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for heater in setup.heaters:
+    for heater in datas.heaters:
         if actuator == "all":
             devices.append(CozytouchSwitch(heater))
-        elif actuator == "pass" and heater.widget == DeviceType.HEATER_PASV:
+        elif actuator == "pass" and heater.widget == DeviceType.PILOT_WIRE_INTERFACE:
             devices.append(CozytouchSwitch(heater))
         elif actuator == "i2g" and heater.widget == DeviceType.HEATER:
             devices.append(CozytouchSwitch(heater))
@@ -69,24 +61,26 @@ class CozytouchSwitch(SwitchDevice):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        await self.heater.async_turn_on()
+        await self.hass.async_add_executor_job(self.heater.turn_on)
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        await self.heater.async_turn_off()
+        await self.hass.async_add_executor_job(self.heater.turn_off)
 
     async def async_update(self):
         """Fetch new state data for this heater."""
         _LOGGER.debug("Update switch {name}".format(name=self.name))
-        await self.heater.async_update()
+        try:
+            await self.hass.async_add_executor_job(self.heater.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
             "manufacturer": "Cozytouch",
-            "via_device": (DOMAIN, self.sensor.data["placeOID"]),
+            "via_device": (DOMAIN, self.heater.data["placeOID"]),
         }

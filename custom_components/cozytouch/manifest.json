@@ -1,13 +1,9 @@
 {
-  "domain": "cozytouch",
-  "name": "Cozytouch",
-  "config_flow": true,
-  "documentation": "https://www.home-assistant.io/components/cozytouch",
-  "requirements": [
-    "cozytouchpy==1.4"
-  ],
-  "dependencies": [],
-  "codeowners": [
-    "@biker91620","@cyr-ius"
-  ]
+    "domain": "cozytouch",
+    "name": "Cozytouch",
+    "config_flow": true,
+    "documentation": "https://www.home-assistant.io/components/cozytouch",
+    "requirements": ["cozytouchpy==1.5.4"],
+    "dependencies": [],
+    "codeowners": ["@biker91620", "@cyr-ius"]
 }

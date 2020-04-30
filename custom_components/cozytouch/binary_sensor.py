@@ -1,35 +1,26 @@
 """Binary sensors for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchClient
+from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
 from homeassistant.components.binary_sensor import BinarySensorDevice
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
 
-from .const import DOMAIN
+from .const import COZYTOUCH_DATAS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
+    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    # Assign configuration variables. The configuration check takes care they are
-    # present.
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    timeout = config_entry.data.get(CONF_TIMEOUT)
-
-    # Setup cozytouch client
-    client = CozytouchClient(username, password, timeout)
-    setup = await client.async_get_setup()
     devices = []
-    for heater in setup.heaters:
+    for heater in datas.heaters:
         for sensor in [
             sensor for sensor in heater.sensors if sensor.widget == DeviceType.OCCUPANCY
         ]:
-            devices.append(CozytouchOccupancySensor(sensor))
+            devices.append(CozytouchOccupancySensor(sensor, heater))
 
     _LOGGER.info("Found {count} binary sensor".format(count=len(devices)))
     async_add_entities(devices, True)
@@ -38,9 +29,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class CozytouchOccupancySensor(BinarySensorDevice):
     """Occupancy sensor (present/not present)."""
 
-    def __init__(self, sensor):
+    def __init__(self, sensor, device):
         """Initialize occupancy sensor."""
         self.sensor = sensor
+        self.ref_id = device.id
+        self.ref_name = device.name
+        self.ref_manufacturer = device.manufacturer
 
     @property
     def unique_id(self):
@@ -67,15 +61,17 @@ class CozytouchOccupancySensor(BinarySensorDevice):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update binary sensor {name}".format(name=self.name))
-        await self.sensor.async_update()
+        try:
+            await self.hass.async_add_executor_job(self.sensor.update)
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):
         """Return the device info."""
-
         return {
-            "name": self.name,
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "manufacturer": "Cozytouch",
+            "name": self.ref_name,
+            "identifiers": {(DOMAIN, self.ref_id)},
+            "manufacturer": self.ref_manufacturer,
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
