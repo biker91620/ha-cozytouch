@@ -47,12 +47,12 @@ class CozyTouchTemperatureSensor(Entity):
 
     @property
     def unique_id(self):
-        """Return the unique id of this switch."""
+        """Return the unique id of this sensor."""
         return self.sensor.id
 
     @property
     def name(self):
-        """Return the display name of this switch."""
+        """Return the display name of this sensor."""
         return "{place} {sensor}".format(
             place=self.sensor.place.name, sensor=self.sensor.name
         )
@@ -98,12 +98,12 @@ class CozyTouchElectricitySensor(Entity):
 
     @property
     def unique_id(self):
-        """Return the unique id of this switch."""
+        """Return the unique id of this sensor."""
         return self.sensor.id
 
     @property
     def name(self):
-        """Return the display name of this switch."""
+        """Return the display name of this sensor."""
         return "{place} {sensor}".format(
             place=self.sensor.place.name, sensor=self.sensor.name
         )

@@ -67,14 +67,9 @@ class StandaloneCozytouchThermostat(climate.ClimateDevice):
 
     @property
     def unique_id(self):
-        """Return the unique id of this switch."""
-        return self.heater.id
-
-    @property
-    def unique_id(self):
         """Return the unique id of this sensor."""
         return self.heater.id
-    
+
     @property
     def name(self):
         """Return the name of the sensor."""
