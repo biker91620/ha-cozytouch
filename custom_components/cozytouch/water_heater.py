@@ -122,6 +122,16 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
         return self.water_heater.is_on
 
     @property
+    def target_temperature_high(self):
+        """Return the highbound target temperature we try to reach."""
+        return self.water_heater.get_state(DeviceState.MAX_TEMPERATURE_MANUEL_MODE_STATE)
+
+    @property
+    def target_temperature_low(self):
+        """Return the lowbound target temperature we try to reach."""
+        return self.water_heater.get_state(DeviceState.MIN_TEMPERATURE_MANUEL_MODE_STATE)
+
+    @property
     def min_temp(self):
         """Return the minimum temperature."""
         return DEFAULT_MIN_TEMP
@@ -246,6 +256,12 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
             "boost_mode_duration": self.water_heater.get_state(
                 DeviceState.BOOST_MODE_DURATION_STATE
             ),
+            "boost_mode_start": self.water_heater.get_state(
+                DeviceState.BOOST_START_DATE_STATE
+            ),
+            "boost_mode_end": self.water_heater.get_state(
+                DeviceState.BOOST_END_DATE_STATE
+            ),             
             "anti_legionellosis": self.water_heater.get_state(
                 DeviceState.ANTI_LEGIONELLOSIS_STATE
             ),
@@ -258,10 +274,10 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
             "booster_time": int(
                 self.water_heater.get_state(
                     DeviceState.ELECTRIC_BOOSTER_OPERATING_TIME_STATE
-                )
+                ) or -1
             ),
             "heatpump_time": int(
-                self.water_heater.get_state(DeviceState.HEAT_PUMP_OPERATING_TIME_STATE)
+                self.water_heater.get_state(DeviceState.HEAT_PUMP_OPERATING_TIME_STATE) or -1
             ),
             "power_electrical": int(
                 self.water_heater.get_state(DeviceState.POWER_HEAT_ELECTRICAL_STATE)
@@ -288,9 +304,11 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
                     )
                 ) * 100
             ),
-            "showers_remaining": round(
-                (self.current_temperature - 10) / 30 / 1.33 * int(self.water_heater.get_state(DeviceState.DHW_CAPACITY_STATE)) / 40
+            "showers_remaining": int(
+                self.water_heater.get_state(DeviceState.NUM_SHOWER_REMAINING_STATE) or -1
             ),
         }
 
-        return attributes
+        # Remove attributes is empty
+        clean_attributes = {k: v for k, v in attributes.items() if (v is not None and v != -1)}
+        return clean_attributes
