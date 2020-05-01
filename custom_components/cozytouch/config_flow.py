@@ -2,7 +2,7 @@
 import logging
 import voluptuous as vol
 
-from cozytouchpy import CozytouchException, CozytouchAuthentificationFailed
+from cozytouchpy.exception import CozytouchException, AuthentificationFailed
 
 from homeassistant import config_entries, core
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_TIMEOUT
@@ -45,14 +45,11 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await validate_input(self.hass, user_input)
+            except AuthentificationFailed as e:
+                errors = {"base": "login_inccorect"}
+                _LOGGER.error("Error: %s", e)
             except CozytouchException as e:
                 errors = {"base": "login_inccorect"}
-                _LOGGER.error("Error: %s", e)
-            except CozytouchAuthentificationFailed as e:
-                errors = {"base": "login_inccorect"}
-                _LOGGER.error("Error: %s", e)
-            except Exception as e:
-                errors = {"base": "unknown"}
                 _LOGGER.error("Error: %s", e)
 
             if "base" not in errors:

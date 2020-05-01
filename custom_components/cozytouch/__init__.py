@@ -3,8 +3,9 @@ import asyncio
 import logging
 
 import voluptuous as vol
-from cozytouchpy import (CozytouchAuthentificationFailed, CozytouchClient,
-                         CozytouchException)
+
+from cozytouchpy.exception import AuthentificationFailed, CozytouchException
+from cozytouchpy import CozytouchClient
 
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
@@ -50,7 +51,7 @@ async def async_setup_entry(hass, config_entry):
         setup = await async_connect(hass, config_entry.data)
         if setup is None:
             return False
-    except (CozytouchException, CozytouchAuthentificationFailed):
+    except CozytouchException:
         return False
 
     hass.data[DOMAIN][config_entry.entry_id] = {COZYTOUCH_DATAS: setup}
@@ -99,7 +100,7 @@ async def async_connect(hass, parameters):
         )
         await hass.async_add_executor_job(cozytouch.connect)
         return await hass.async_add_executor_job(cozytouch.get_setup)
+    except AuthentificationFailed as e:
+        raise AuthentificationFailed(e)
     except CozytouchException as e:
         raise CozytouchException(e)
-    except CozytouchAuthentificationFailed as e:
-        raise CozytouchAuthentificationFailed(e)
