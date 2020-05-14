@@ -62,7 +62,7 @@ class CozytouchOccupancySensor(BinarySensorDevice):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update binary sensor {name}".format(name=self.name))
         try:
-            await self.hass.async_add_executor_job(self.sensor.update)
+            await self.sensor.update()
         except CozytouchException:
             _LOGGER.error("Device data no retrieve {}".format(self.name))
 

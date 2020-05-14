@@ -187,26 +187,22 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
 
     async def async_set_operation_mode(self, operation_mode):
         """Set new target operation mode."""
-        await self.hass.async_add_executor_job(
-            self.water_heater.set_operating_mode, HASS_TO_COZY_STATE[operation_mode]
-        )
+        await self.water_heater.set_operating_mode(HASS_TO_COZY_STATE[operation_mode])
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         self._target_temperature = kwargs.get(ATTR_TEMPERATURE)
-        await self.hass.async_add_executor_job(
-            self.water_heater.set_temperature, self._target_temperature
-        )
+        await self.water_heater.set_temperature(self._target_temperature)
 
     async def async_set_away_mode(self, period):
         """Turn away on."""
         _LOGGER.debug("Set away mode for {} days".format(period))
-        await self.hass.async_add_executor_job(self.water_heater.set_away_mode, period)
+        await self.water_heater.set_away_mode(period)
 
     async def async_set_boost_mode(self, period):
         """Turn away on."""
         _LOGGER.debug("Set boost mode for {} days".format(period))
-        await self.hass.async_add_executor_job(self.water_heater.set_boost_mode, period)
+        await self.water_heater.set_boost_mode(period)
 
     async def async_turn_boost_mode_off(self):
         """Turn away off."""
@@ -227,7 +223,7 @@ class StandaloneCozytouchWaterHeater(WaterHeaterDevice):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update water heater {name}".format(name=self.name))
         try:
-            await self.hass.async_add_executor_job(self.water_heater.update)
+            await self.water_heater.update()
         except CozytouchException:
             _LOGGER.error("Device data no retrieve {}".format(self.name))
 

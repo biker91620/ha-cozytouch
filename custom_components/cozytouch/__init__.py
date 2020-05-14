@@ -98,8 +98,8 @@ async def async_connect(hass, parameters):
             parameters[CONF_PASSWORD],
             parameters[CONF_TIMEOUT],
         )
-        await hass.async_add_executor_job(cozytouch.connect)
-        return await hass.async_add_executor_job(cozytouch.get_setup)
+        await cozytouch.connect()
+        return await cozytouch.get_setup()
     except AuthentificationFailed as e:
         raise AuthentificationFailed(e)
     except CozytouchException as e:

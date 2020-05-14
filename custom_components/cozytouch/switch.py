@@ -61,17 +61,17 @@ class CozytouchSwitch(SwitchDevice):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        await self.hass.async_add_executor_job(self.heater.turn_on)
+        await self.heater.turn_on()
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        await self.hass.async_add_executor_job(self.heater.turn_off)
+        await self.heater.turn_off()
 
     async def async_update(self):
         """Fetch new state data for this heater."""
         _LOGGER.debug("Update switch {name}".format(name=self.name))
         try:
-            await self.hass.async_add_executor_job(self.heater.update)
+            await self.heater.update()
         except CozytouchException:
             _LOGGER.error("Device data no retrieve {}".format(self.name))
 
