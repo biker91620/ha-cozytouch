@@ -49,7 +49,7 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors = {"base": "login_inccorect"}
                 _LOGGER.error("Error: %s", e)
             except CozytouchException as e:
-                errors = {"base": "login_inccorect"}
+                errors = {"base": "parsing"}
                 _LOGGER.error("Error: %s", e)
 
             if "base" not in errors:
