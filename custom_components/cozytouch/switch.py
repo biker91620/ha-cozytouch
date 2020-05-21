@@ -4,7 +4,7 @@ import logging
 from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
-from homeassistant.components.switch import SwitchDevice
+from homeassistant.components.switch import SwitchEntity
 
 from .const import CONF_COZYTOUCH_ACTUATOR, COZYTOUCH_DATAS, DOMAIN
 
@@ -30,7 +30,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(devices, True)
 
 
-class CozytouchSwitch(SwitchDevice):
+class CozytouchSwitch(SwitchEntity):
     """Header switch (on/off)."""
 
     def __init__(self, heater):

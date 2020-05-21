@@ -4,7 +4,7 @@ import logging
 from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
-from homeassistant.components.binary_sensor import BinarySensorDevice
+from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from .const import COZYTOUCH_DATAS, DOMAIN
 
@@ -26,7 +26,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(devices, True)
 
 
-class CozytouchOccupancySensor(BinarySensorDevice):
+class CozytouchOccupancySensor(BinarySensorEntity):
     """Occupancy sensor (present/not present)."""
 
     def __init__(self, sensor, device):

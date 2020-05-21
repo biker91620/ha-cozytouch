@@ -2,8 +2,12 @@
 import logging
 
 from cozytouchpy import CozytouchException
-from cozytouchpy.constant import (DeviceState, DeviceType, OperatingModeState,
-                                  TargetingHeatingLevelState)
+from cozytouchpy.constant import (
+    DeviceState,
+    DeviceType,
+    OperatingModeState,
+    TargetingHeatingLevelState,
+)
 
 from homeassistant.components import climate
 from homeassistant.components.climate import const
@@ -27,7 +31,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(devices, True)
 
 
-class StandaloneCozytouchThermostat(climate.ClimateDevice):
+class StandaloneCozytouchThermostat(climate.ClimateEntity):
     """Representation a thermostat."""
 
     def __init__(self, heater):
