@@ -5,7 +5,7 @@ from cozytouchpy import CozytouchException
 from cozytouchpy.constant import (
     DeviceState,
     DeviceType,
-    OperatingModeState,
+    ModeState,
     TargetingHeatingLevelState,
 )
 
@@ -118,13 +118,13 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return hvac target hvac state."""
-        if self.heater.operating_mode == OperatingModeState.STANDBY:
+        if self.heater.operating_mode == ModeState.STANDBY:
             return const.HVAC_MODE_OFF
-        elif self.heater.operating_mode == OperatingModeState.BASIC:
+        elif self.heater.operating_mode == ModeState.BASIC:
             return const.HVAC_MODE_HEAT
-        elif self.heater.operating_mode == OperatingModeState.INTERNAL:
+        elif self.heater.operating_mode == ModeState.INTERNAL:
             return const.HVAC_MODE_AUTO
-        elif self.heater.operating_mode == OperatingModeState.AUTO:
+        elif self.heater.operating_mode == ModeState.AUTO:
             return const.HVAC_MODE_AUTO
         return const.HVAC_MODE_OFF
 
@@ -180,11 +180,11 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     async def async_set_hvac_mode(self, hvac_mode: str) -> None:
         """Set new target hvac mode. HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_OFF."""
         if hvac_mode == const.HVAC_MODE_OFF:
-            await self.heater.set_operating_mode(OperatingModeState.STANDBY)
+            await self.heater.set_operating_mode(ModeState.STANDBY)
         elif hvac_mode == const.HVAC_MODE_HEAT:
-            await self.heater.set_operating_mode(OperatingModeState.BASIC)
+            await self.heater.set_operating_mode(ModeState.BASIC)
         elif hvac_mode == const.HVAC_MODE_AUTO:
-            await self.heater.set_operating_mode(OperatingModeState.INTERNAL)
+            await self.heater.set_operating_mode(ModeState.INTERNAL)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
