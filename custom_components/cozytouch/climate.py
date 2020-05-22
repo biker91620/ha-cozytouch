@@ -9,8 +9,7 @@ from cozytouchpy.constant import (
     TargetingHeatingLevelState,
 )
 
-from homeassistant.components import climate
-from homeassistant.components.climate import const
+from homeassistant.components.climate import ClimateEntity, const
 from homeassistant.const import TEMP_CELSIUS
 
 from .const import COZYTOUCH_DATAS, DOMAIN
@@ -25,13 +24,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     devices = []
     for heater in datas.heaters:
         if heater.widget == DeviceType.HEATER:
-            devices.append(StandaloneCozytouchThermostat(heater))
+            devices.append(CozytouchStandaloneThermostat(heater))
 
     _LOGGER.info("Found {count} thermostat".format(count=len(devices)))
     async_add_entities(devices, True)
 
 
-class StandaloneCozytouchThermostat(climate.ClimateEntity):
+class CozytouchStandaloneThermostat(ClimateEntity):
     """Representation a thermostat."""
 
     def __init__(self, heater):
@@ -164,7 +163,9 @@ class StandaloneCozytouchThermostat(climate.ClimateEntity):
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if const.ATTR_TARGET_TEMP_HIGH in kwargs:
-            await self.heater.set_comfort_temperature(kwargs[const.ATTR_TARGET_TEMP_HIGH])
+            await self.heater.set_comfort_temperature(
+                kwargs[const.ATTR_TARGET_TEMP_HIGH]
+            )
             _LOGGER.info(
                 "Set HIGH TEMP to {temp}".format(
                     temp=kwargs[const.ATTR_TARGET_TEMP_HIGH]
@@ -188,11 +189,17 @@ class StandaloneCozytouchThermostat(climate.ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
         if preset_mode == const.PRESET_SLEEP:
-            await self.heater.set_targeting_heating_level(TargetingHeatingLevelState.FROST_PROTECTION)
+            await self.heater.set_targeting_heating_level(
+                TargetingHeatingLevelState.FROST_PROTECTION
+            )
         elif preset_mode == const.PRESET_ECO:
-            await self.heater.set_targeting_heating_level(TargetingHeatingLevelState.ECO)
+            await self.heater.set_targeting_heating_level(
+                TargetingHeatingLevelState.ECO
+            )
         elif preset_mode == const.PRESET_COMFORT:
-            await self.heater.set_targeting_heating_level(TargetingHeatingLevelState.COMFORT)
+            await self.heater.set_targeting_heating_level(
+                TargetingHeatingLevelState.COMFORT
+            )
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
