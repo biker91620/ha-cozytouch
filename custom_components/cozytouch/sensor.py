@@ -121,7 +121,10 @@ class CozyTouchElectricitySensor(Entity):
     async def async_update(self):
         """Fetch new state data for this sensor."""
         _LOGGER.debug("Update sensor {name}".format(name=self.name))
-        await self.sensor.update()
+        try:
+            await self.sensor.update()
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
 
     @property
     def device_info(self):
