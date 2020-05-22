@@ -2,7 +2,7 @@
 import logging
 
 from cozytouchpy import CozytouchException
-from cozytouchpy.constant import DeviceType
+from cozytouchpy.constant import DeviceType, DeviceState
 
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.helpers.entity import Entity
@@ -30,6 +30,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 devices.append(CozyTouchTemperatureSensor(sensor, water_heater))
             elif sensor.widget == DeviceType.ELECTRECITY:
                 devices.append(CozyTouchElectricitySensor(sensor, water_heater))
+
+    for boiler in datas.boilers:
+        devices.append(CozytouchBoiler(boiler))
 
     _LOGGER.info("Found {count} sensors".format(count=len(devices)))
     async_add_entities(devices, True)
@@ -135,3 +138,64 @@ class CozyTouchElectricitySensor(Entity):
             "manufacturer": self.ref_manufacturer,
             "via_device": (DOMAIN, self.sensor.data["placeOID"]),
         }
+
+
+class CozytouchBoiler(Entity):
+    """Representation of an boiler Sensor."""
+
+    def __init__(self, device):
+        """Initialize the sensor."""
+        self.boiler = device
+
+    @property
+    def unique_id(self):
+        """Return the unique id of this sensor."""
+        return self.boiler.id
+
+    @property
+    def name(self):
+        """Return the display name of this sensor."""
+        return self.boiler.name
+
+    def avaibility(self):
+        """Return avaibility sensor."""
+        return self.boiler.get_state(DeviceState.STATUS_STATE) == "available"
+
+    @property
+    def state(self):
+        """Return current operation ie. eco, electric, performance, ..."""
+        return self.boiler.get_state(DeviceState.PASS_APC_OPERATING_MODE_STATE)
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "name": self.name,
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "manufacturer": self.boiler.manufacturer,
+            "model": self.boiler.get_state(DeviceState.PRODUCT_MODEL_NAME_STATE),
+            "via_device": (DOMAIN, self.boiler.data["placeOID"]),
+        }
+
+    @property
+    def device_state_attributes(self):
+        """Return the device state attributes."""
+        attributes = {
+            "programmation": self.boiler.timeprogram_state(),
+            "away_target_temperature": self.boiler.away_target_temperature(),
+            "error": self.boiler.get_state(DeviceState.ERROR_CODE_STATE),
+        }
+
+        # Remove attributes is empty
+        clean_attributes = {
+            k: v for k, v in attributes.items() if (v is not None and v != -1)
+        }
+        return clean_attributes
+
+    async def async_update(self):
+        """Fetch new state data for this sensor."""
+        _LOGGER.debug("Update boiler {name}".format(name=self.name))
+        try:
+            await self.boiler.update()
+        except CozytouchException:
+            _LOGGER.error("Device data no retrieve {}".format(self.name))
