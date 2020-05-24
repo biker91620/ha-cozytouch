@@ -5,9 +5,9 @@ set_away_mode:
   fields:
     entity_id:
       description: Name(s) of entities to change.
-      example: 'water_heater.water_heater'
+      example: "water_heater.water_heater"
     time_period:
-      description:  Number of away days 
+      description: Number of away days
       example: 7
 
 set_boost_mode:
@@ -15,7 +15,7 @@ set_boost_mode:
   fields:
     entity_id:
       description: Name(s) of entities to change.
-      example: 'water_heater.water_heater'
+      example: "water_heater.water_heater"
     time_period:
-      description:  Number of boost days 
+      description: Number of boost days
       example: 2
