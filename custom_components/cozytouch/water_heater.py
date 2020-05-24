@@ -168,9 +168,7 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
     @property
     def current_operation(self):
         """Return current operation ie. eco, electric, performance, ..."""
-        return COZY_TO_HASS_STATE[
-            self.water_heater.get_state(DeviceState.DHW_MODE_STATE)
-        ]
+        return COZY_TO_HASS_STATE[self.water_heater.operating_mode]
 
     @property
     def operation_list(self):
@@ -180,18 +178,17 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
     @property
     def current_temperature(self):
         """Return the current temperature."""
-        return self.water_heater.get_state(DeviceState.MIDDLE_WATER_TEMPERATURE_STATE)
+        return self.water_heater.current_temperature
 
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
-        return self.water_heater.get_state(DeviceState.TARGET_TEMPERATURE_STATE)
+        return self.water_heater.target_temperature
 
     @property
     def is_away_mode_on(self):
         """Return true if away mode is on."""
-        om_state = self.water_heater.get_state(DeviceState.OPERATING_MODE_STATE)
-        return om_state["absence"] == STATE_ON
+        return self.water_heater.is_away_mode_on
 
     @property
     def is_boost_mode_on(self):
