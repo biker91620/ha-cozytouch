@@ -6,7 +6,6 @@ from cozytouchpy.constant import (
     DeviceState,
     DeviceType,
     ModeState,
-    TargetingHeatingLevelState,
 )
 
 from homeassistant.components.climate import ClimateEntity, const
@@ -141,9 +140,9 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     @property
     def preset_mode(self):
         """Return the current preset mode."""
-        if self.heater.target_heating_level == TargetingHeatingLevelState.ECO:
+        if self.heater.target_heating_level == ModeState.ECO:
             return const.PRESET_ECO
-        if self.heater.target_heating_level == TargetingHeatingLevelState.COMFORT:
+        if self.heater.target_heating_level == ModeState.COMFORT:
             return const.PRESET_COMFORT
         return const.PRESET_SLEEP
 
@@ -189,17 +188,11 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
         if preset_mode == const.PRESET_SLEEP:
-            await self.heater.set_targeting_heating_level(
-                TargetingHeatingLevelState.FROST_PROTECTION
-            )
+            await self.heater.set_targeting_heating_level(ModeState.FROST_PROTECTION)
         elif preset_mode == const.PRESET_ECO:
-            await self.heater.set_targeting_heating_level(
-                TargetingHeatingLevelState.ECO
-            )
+            await self.heater.set_targeting_heating_level(ModeState.ECO)
         elif preset_mode == const.PRESET_COMFORT:
-            await self.heater.set_targeting_heating_level(
-                TargetingHeatingLevelState.COMFORT
-            )
+            await self.heater.set_targeting_heating_level(ModeState.COMFORT)
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
