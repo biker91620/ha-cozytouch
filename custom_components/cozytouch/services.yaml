@@ -19,3 +19,13 @@ set_boost_mode:
     time_period:
       description: Number of boost days
       example: 2
+
+set_operation_mode:
+  description: Select operation mode for a boiler.
+  fields:
+    entity_id:
+      description: Name(s) of entities to change.
+      example: "water_heater.water_heater"
+    mode:
+      description: mode (operation mode list)
+      example: stop

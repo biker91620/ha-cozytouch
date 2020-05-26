@@ -1,15 +1,30 @@
 """Sensors for Cozytouch."""
 import logging
 
+import voluptuous as vol
 from cozytouchpy import CozytouchException
-from cozytouchpy.constant import DeviceType, DeviceState
+from cozytouchpy.constant import DeviceState, DeviceType
 
-from homeassistant.const import TEMP_CELSIUS
+import homeassistant.helpers.config_validation as cv
+from homeassistant.const import ATTR_ENTITY_ID, TEMP_CELSIUS
 from homeassistant.helpers.entity import Entity
 
-from .const import COZYTOUCH_DATAS, DOMAIN, KW_UNIT
+from .const import (
+    ATTR_OPERATION_MODE,
+    COZYTOUCH_DATAS,
+    DOMAIN,
+    KW_UNIT,
+    SERVICE_SET_OPERATION_MODE,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
+BOILER_OPERATION_MODE = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_OPERATION_MODE): cv.string,
+    }
+)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -17,6 +32,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
     devices = []
+    boilers_exists = False
     for heater in datas.heaters:
         for sensor in heater.sensors:
             if sensor.widget == DeviceType.TEMPERATURE:
@@ -32,7 +48,27 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 devices.append(CozyTouchElectricitySensor(sensor, water_heater))
 
     for boiler in datas.boilers:
+        boilers_exists = True
         devices.append(CozytouchBoiler(boiler))
+
+    if boilers_exists:
+
+        async def async_service_operation_mode(service):
+            """Handle operation mode service."""
+            entity_id = service.data.get(ATTR_ENTITY_ID)
+            for device in devices:
+                if device.entity_id == entity_id:
+                    await hass.async_add_executor_job(
+                        device.async_set_operation_mode,
+                        service.data[ATTR_OPERATION_MODE],
+                    )
+
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_SET_OPERATION_MODE,
+            async_service_operation_mode,
+            schema=BOILER_OPERATION_MODE,
+        )
 
     _LOGGER.info("Found {count} sensors".format(count=len(devices)))
     async_add_entities(devices, True)
@@ -181,9 +217,9 @@ class CozytouchBoiler(Entity):
     def device_state_attributes(self):
         """Return the device state attributes."""
         attributes = {
-            "programmation": self.boiler.timeprogram_state(),
-            "away_target_temperature": self.boiler.away_target_temperature(),
+            "away_target_temperature": self.boiler.away_target_temperature,
             "error": self.boiler.get_state(DeviceState.ERROR_CODE_STATE),
+            "programmation": self.boiler.timeprogram_state,
         }
 
         # Remove attributes is empty
@@ -191,6 +227,13 @@ class CozytouchBoiler(Entity):
             k: v for k, v in attributes.items() if (v is not None and v != -1)
         }
         return clean_attributes
+
+    async def async_set_operation_mode(self, mode):
+        """Set operation mode."""
+        try:
+            await self.boiler.async_set_operation_mode(mode)
+        except CozytouchException as excpt:
+            _LOGGER.error("Error for set operation %s", excpt)
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
