@@ -15,7 +15,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
 
-    actuator = CONF_COZYTOUCH_ACTUATOR
+    actuator = hass.data[DOMAIN][CONF_COZYTOUCH_ACTUATOR]
 
     devices = []
     for heater in datas.heaters:

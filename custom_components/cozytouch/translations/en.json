@@ -3,17 +3,18 @@
 		"title": "Cozytouch",
 		"step": {
 			"user": {
-				"title": "Add your cozytouch",
+				"title": "Add cozytouch's bridge",
+				"description": "Please set your email and password",
 				"data": {
 					"username": "Username",
 					"password": "Password",
-					"timeout" : "Tiemout"
+					"timeout": "Timeout",
+					"model": "model"
 				}
 			}
 		},
 		"error": {
 			"login_inccorect": "User or password inccorect",
-			"parsing": "Server response non parsable",
 			"unknown": "Unknown error occurred"
 		}
 	}

@@ -3,15 +3,23 @@ import asyncio
 import logging
 
 import voluptuous as vol
-
-from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from cozytouchpy import CozytouchClient
-
+from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 
-from .const import COMPONENTS, COZYTOUCH_DATAS, DEFAULT_TIMEOUT, DOMAIN
+from .const import (
+    COMPONENTS,
+    COZYTOUCH_ACTUATOR,
+    CONF_COZYTOUCH_ACTUATOR,
+    COZYTOUCH_DATAS,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    SENSOR_TYPES,
+    DEFAULT_COZYTOUCH_ACTUATOR,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +30,9 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Required(CONF_USERNAME): str,
                 vol.Required(CONF_PASSWORD): str,
                 vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): int,
+                vol.Optional(
+                    CONF_COZYTOUCH_ACTUATOR, default=DEFAULT_COZYTOUCH_ACTUATOR
+                ): vol.In(SENSOR_TYPES),
             }
         )
     },
@@ -47,6 +58,11 @@ async def async_setup(hass, config):
 
 async def async_setup_entry(hass, config_entry):
     """Set up Cozytouch as config entry."""
+    if not config_entry.options:
+        hass.config_entries.async_update_entry(
+            config_entry, options={"model": config_entry.data[CONF_COZYTOUCH_ACTUATOR]}
+        )
+
     try:
         setup = await async_connect(hass, config_entry.data)
         if setup is None:
@@ -55,6 +71,9 @@ async def async_setup_entry(hass, config_entry):
         return False
 
     hass.data[DOMAIN][config_entry.entry_id] = {COZYTOUCH_DATAS: setup}
+    hass.data[DOMAIN][COZYTOUCH_ACTUATOR] = config_entry.options[
+        CONF_COZYTOUCH_ACTUATOR
+    ]
 
     device_registry = await dr.async_get_registry(hass)
     for gateway in setup.data.get("gateways"):
