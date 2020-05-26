@@ -2,11 +2,7 @@
 import logging
 
 from cozytouchpy import CozytouchException
-from cozytouchpy.constant import (
-    DeviceState,
-    DeviceType,
-    ModeState,
-)
+from cozytouchpy.constant import DeviceState, DeviceType, ModeState
 
 from homeassistant.components.climate import ClimateEntity, const
 from homeassistant.const import TEMP_CELSIUS
@@ -188,7 +184,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
         if preset_mode == const.PRESET_SLEEP:
-            await self.heater.set_targeting_heating_level(ModeState.FROST_PROTECTION)
+            await self.heater.set_targeting_heating_level(ModeState.FROSTPROTECT)
         elif preset_mode == const.PRESET_ECO:
             await self.heater.set_targeting_heating_level(ModeState.ECO)
         elif preset_mode == const.PRESET_COMFORT:
