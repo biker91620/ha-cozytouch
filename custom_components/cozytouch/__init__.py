@@ -7,7 +7,6 @@ from cozytouchpy import CozytouchClient
 from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 
 from .const import (
