@@ -59,7 +59,12 @@ async def async_setup_entry(hass, config_entry):
     """Set up Cozytouch as config entry."""
     if not config_entry.options:
         hass.config_entries.async_update_entry(
-            config_entry, options={"model": config_entry.data[CONF_COZYTOUCH_ACTUATOR]}
+            config_entry,
+            options={
+                "model": config_entry.data.get(
+                    CONF_COZYTOUCH_ACTUATOR, DEFAULT_COZYTOUCH_ACTUATOR
+                )
+            },
         )
 
     try:

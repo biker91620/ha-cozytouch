@@ -46,10 +46,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 devices.append(CozyTouchTemperatureSensor(sensor, water_heater))
             elif sensor.widget == DeviceType.ELECTRECITY:
                 devices.append(CozyTouchElectricitySensor(sensor, water_heater))
+            elif sensor.widget == DeviceType.DHW_ELECTRECITY:
+                devices.append(CozyTouchElectricitySensor(sensor, water_heater))
 
     for boiler in datas.boilers:
-        boilers_exists = True
-        devices.append(CozytouchBoiler(boiler))
+        if boiler.widget == DeviceType.APC_BOILER:
+            boilers_exists = True
+            devices.append(CozytouchBoiler(boiler))
 
     if boilers_exists:
 
