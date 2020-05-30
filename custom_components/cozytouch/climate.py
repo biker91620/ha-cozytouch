@@ -2,7 +2,7 @@
 import logging
 
 from cozytouchpy import CozytouchException
-from cozytouchpy.constant import DeviceState, DeviceType, ModeState
+from cozytouchpy.constant import DeviceState, DeviceType, ModeState, ThermalState
 
 from homeassistant.components.climate import ClimateEntity, const
 from homeassistant.const import TEMP_CELSIUS
@@ -443,11 +443,11 @@ class CozytouchStandaloneAPCHeatingCoolingThermostat(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return hvac target hvac state."""
-        if self.heater.thermal_state == "heatingAndCooling":
+        if self.heater.thermal_state == ThermalState.HEATCOOL:
             return const.HVAC_MODE_HEAT_COOL
-        elif self.heater.thermal_state == "heating":
+        elif self.heater.thermal_state == ThermalState.HEAT:
             return const.HVAC_MODE_HEAT
-        elif self.heater.thermal_state == "cooling":
+        elif self.heater.thermal_state == ThermalState.COOL:
             return const.HVAC_MODE_COOL
         else:
             return const.HVAC_MODE_OFF
