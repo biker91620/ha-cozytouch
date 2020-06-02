@@ -327,9 +327,9 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
         await self.async_set_boost_mode(0)
 
     async def async_turn_away_mode_on(self):
-        """Turn away on (365 days max)."""
+        """Turn away on (99 days max)."""
         _LOGGER.debug("Turn on away mode")
-        await self.async_set_away_mode(365)
+        await self.async_set_away_mode(99)
 
     async def async_turn_away_mode_off(self):
         """Turn away off."""
