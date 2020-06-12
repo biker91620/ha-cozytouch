@@ -5,6 +5,7 @@ import logging
 import voluptuous as vol
 from cozytouchpy import CozytouchClient
 from cozytouchpy.exception import AuthentificationFailed, CozytouchException
+from cozytouchpy.constant import DeviceType
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
 from homeassistant.helpers import device_registry as dr
@@ -18,6 +19,11 @@ from .const import (
     DOMAIN,
     SENSOR_TYPES,
     DEFAULT_COZYTOUCH_ACTUATOR,
+    SCHEMA_HEATER,
+    SCHEMA_HEATINGCOOLINGZONE,
+    SCHEMA_HEATINGZONE,
+    HVAC_MODE_LIST,
+    PRESET_MODE_LIST,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -127,3 +133,29 @@ async def async_connect(hass, parameters):
         raise AuthentificationFailed(e)
     except CozytouchException as e:
         raise CozytouchException(e)
+
+
+class ClimateSchema:
+    """Determine schema for a climate."""
+
+    def __init__(self, model):
+        """Get model."""
+        self._model = model
+
+    def hvac_list(self):
+        """Return HVAC Mode List."""
+        if DeviceType.HEATER == self._model:
+            return SCHEMA_HEATER.get(HVAC_MODE_LIST)
+        if DeviceType.APC_HEATING_ZONE == self._model:
+            return SCHEMA_HEATINGZONE.get(HVAC_MODE_LIST)
+        if DeviceType.APC_HEATING_COOLING_ZONE == self._model:
+            return SCHEMA_HEATINGCOOLINGZONE.get(HVAC_MODE_LIST)
+
+    def preset_list(self):
+        """Return HVAC Mode List."""
+        if DeviceType.HEATER == self._model:
+            return SCHEMA_HEATER.get(PRESET_MODE_LIST)
+        if DeviceType.APC_HEATING_ZONE == self._model:
+            return SCHEMA_HEATINGZONE.get(PRESET_MODE_LIST)
+        if DeviceType.APC_HEATING_COOLING_ZONE == self._model:
+            return SCHEMA_HEATINGCOOLINGZONE.get(PRESET_MODE_LIST)
