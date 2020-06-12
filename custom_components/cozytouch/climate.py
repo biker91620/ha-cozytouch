@@ -6,28 +6,28 @@ from cozytouchpy.constant import DeviceState, DeviceType, ThermalState
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    ATTR_TARGET_TEMP_LOW,
     ATTR_TARGET_TEMP_HIGH,
+    ATTR_TARGET_TEMP_LOW,
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_TARGET_TEMPERATURE_RANGE,
 )
 
-
 from homeassistant.const import TEMP_CELSIUS
+
 from . import ClimateSchema
 from .const import (
+    COZY_TO_PRESET_MODE,
     COZYTOUCH_DATAS,
     DOMAIN,
-    HVAC_MODE_OFF,
     HEATER_TO_HVAC_MODE,
     HEATING_TO_HVAC_MODE,
     HEATINGCOOLING_TO_HVAC_MODE,
+    HVAC_MODE_OFF,
     HVAC_MODE_TO_HEATER,
     HVAC_MODE_TO_HEATING,
     HVAC_MODE_TO_HEATINGCOOLING,
     PRESET_MODE_TO_COZY,
-    COZY_TO_PRESET_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -267,6 +267,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
+        _LOGGER.debug(preset_mode)
         if self.climate.widget == DeviceType.APC_HEATING_COOLING_ZONE:
             await self.climate.set_preset_mode(
                 PRESET_MODE_TO_COZY[preset_mode], self._mode
