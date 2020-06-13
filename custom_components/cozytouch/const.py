@@ -94,13 +94,13 @@ SCHEMA_HEATINGCOOLINGZONE = DeviceType.APC_HEATING_COOLING_ZONE
 
 HVAC_MODE_TO_HEATER = {
     HVAC_MODE_AUTO: "internal",
-    HVAC_MODE_HEAT: "on",
-    HVAC_MODE_OFF: "off",
+    HVAC_MODE_HEAT: "basic",
+    HVAC_MODE_OFF: "standby",
 }
 HEATER_TO_HVAC_MODE = {
     "internal": HVAC_MODE_AUTO,
-    "off": HVAC_MODE_OFF,
-    "on": HVAC_MODE_HEAT,
+    "standby": HVAC_MODE_OFF,
+    "basic": HVAC_MODE_HEAT,
 }
 
 SCHEMA_HEATER = {
