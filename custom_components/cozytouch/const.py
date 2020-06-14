@@ -101,6 +101,8 @@ HEATER_TO_HVAC_MODE = {
     "internal": HVAC_MODE_AUTO,
     "standby": HVAC_MODE_OFF,
     "basic": HVAC_MODE_HEAT,
+    "auto": HVAC_MODE_AUTO,
+    "off": HVAC_MODE_OFF,
 }
 
 SCHEMA_HEATER = {
