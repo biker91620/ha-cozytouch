@@ -3,7 +3,7 @@
     "name": "Cozytouch",
     "config_flow": true,
     "documentation": "https://www.home-assistant.io/components/cozytouch",
-    "requirements": ["cozytouchpy==1.9.3"],
+    "requirements": ["cozytouchpy==1.9.4"],
     "dependencies": [],
     "codeowners": ["@biker91620", "@cyr-ius"]
 }
