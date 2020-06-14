@@ -56,7 +56,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class CozytouchStandaloneThermostat(ClimateEntity):
     """Representation a thermostat."""
 
-    def __init__(self, climate, mode=ThermalState.HEAT):
+    def __init__(self, climate, mode=None):
         """Initialize the sensor."""
         self.climate = climate
         self._mode = mode
@@ -114,12 +114,12 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     @property
     def unique_id(self):
         """Return the unique id of this sensor."""
-        return f"{self.climate.id}-{self._mode}"
+        return f"{self.climate.id}{self._mode}"
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return "{climate} {mode}".format(climate=self.climate.name, mode=self._mode)
+        return "{climate}".format(climate=self.climate.name)
 
     @property
     def supported_features(self):
@@ -141,8 +141,8 @@ class CozytouchStandaloneThermostat(ClimateEntity):
         """Return the device info."""
         return {
             "name": self.name,
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "manufacturer": "Cozytouch",
+            "identifiers": {(DOMAIN, self.climate.id)},
+            "manufacturer": self.climate.manufacturer,
             "via_device": (DOMAIN, self.climate.data["placeOID"]),
         }
 
@@ -194,7 +194,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     def preset_mode(self):
         """Return the current preset mode."""
         preset = self.climate.preset_mode
-        if self._mode == "cool":
+        if self._mode == ThermalState.COOL:
             preset = self.climate.preset_cooling_mode
         return COZY_TO_PRESET_MODE[preset]
 
@@ -252,9 +252,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode: str) -> None:
         """Set new target hvac mode. HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_OFF."""
-        _LOGGER.debug(hvac_mode)
         if hvac_mode == HVAC_MODE_OFF:
-            _LOGGER.debug("Turn off")
             await self.climate.turn_off()
         elif self.climate.widget == DeviceType.HEATER:
             await self.climate.set_operating_mode(HVAC_MODE_TO_HEATER[hvac_mode])
@@ -267,7 +265,6 @@ class CozytouchStandaloneThermostat(ClimateEntity):
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
-        _LOGGER.debug(preset_mode)
         if self.climate.widget == DeviceType.APC_HEATING_COOLING_ZONE:
             await self.climate.set_preset_mode(
                 PRESET_MODE_TO_COZY[preset_mode], self._mode
