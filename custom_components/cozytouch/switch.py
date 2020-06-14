@@ -45,9 +45,7 @@ class CozytouchSwitch(SwitchEntity):
     @property
     def name(self):
         """Return the display name of this switch."""
-        return "{place} {heater}".format(
-            place=self.heater.place.name, heater=self.heater.name
-        )
+        return "{heater}".format(heater=self.heater.name)
 
     @property
     def is_on(self):
