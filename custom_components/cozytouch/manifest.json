@@ -2,7 +2,8 @@
     "domain": "cozytouch",
     "name": "Cozytouch",
     "config_flow": true,
-    "documentation": "https://www.home-assistant.io/components/cozytouch",
+    "documentation": "https://github.com/cyr-ius/hass-cozytouch",
+    "issue_tracker": "https://github.com/cyr-ius/hass-cozytouch/issues",
     "requirements": ["cozytouchpy==1.9.6"],
     "dependencies": [],
     "codeowners": ["@biker91620", "@cyr-ius"]
