@@ -195,12 +195,12 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
     @property
     def is_away_mode_on(self):
         """Return true if away mode is on."""
-        return self.water_heater.is_away_mode_on
+        return self.water_heater.is_away_mode
 
     @property
     def is_boost_mode_on(self):
         """Return true if boost mode is on."""
-        return self.water_heater.is_away_mode_on
+        return self.water_heater.is_boost_mode
 
     @property
     def device_info(self):
@@ -221,7 +221,7 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
                 DeviceState.OPERATING_MODE_CAPABILITIES_STATE, {}
             ).get("energyDemandStatus")
             == 1,
-            "aways_mode_duration": self.water_heater.get_state(
+            "away_mode_duration": self.water_heater.get_state(
                 DeviceState.AWAY_MODE_DURATION_STATE
             ),
             "boost_mode": self.is_boost_mode_on,
@@ -457,12 +457,12 @@ class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
     @property
     def is_away_mode_on(self):
         """Return true if away mode is on."""
-        return self.water_heater.is_away_mode_on
+        return self.water_heater.is_away_mode
 
     @property
     def is_boost_mode_on(self):
         """Return true if boost mode is on."""
-        return self.water_heater.is_away_mode_on
+        return self.water_heater.is_boost_mode
 
     @property
     def device_info(self):
@@ -483,7 +483,7 @@ class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
                 DeviceState.OPERATING_MODE_CAPABILITIES_STATE, {}
             ).get("energyDemandStatus")
             == 1,
-            "aways_mode_duration": self.water_heater.get_state(
+            "away_mode_duration": self.water_heater.get_state(
                 DeviceState.AWAY_MODE_DURATION_STATE
             ),
             "boost_mode": self.is_boost_mode_on,
@@ -557,7 +557,7 @@ class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
     async def async_turn_away_mode_on(self):
         """Turn away on."""
         _LOGGER.debug("Turn on away mode")
-        await self.async_set_away_mode(1)
+        await self.async_set_away_mode(99)
 
     async def async_turn_away_mode_off(self):
         """Turn away off."""
