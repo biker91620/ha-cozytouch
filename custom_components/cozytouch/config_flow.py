@@ -3,7 +3,7 @@ import logging
 
 import voluptuous as vol
 from cozytouchpy.exception import AuthentificationFailed, CozytouchException
-from homeassistant import config_entries, core
+from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
 from homeassistant.core import callback
 
@@ -30,15 +30,8 @@ DATA_SCHEMA = vol.Schema(
 _LOGGER = logging.getLogger(__name__)
 
 
-async def validate_input(hass: core.HomeAssistant, data):
-    """Validate the user input allows us to connect.
-
-    Data has the keys from DATA_SCHEMA with values provided by the user.
-    """
-    return await async_connect(hass, data)
-
-
-class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class CozytouchFlowHandler(config_entries.ConfigFlow):
     """Handle a Cozytouch config flow."""
 
     VERSION = 1
@@ -59,13 +52,13 @@ class CozytouchFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             try:
-                await validate_input(self.hass, user_input)
-            except AuthentificationFailed as e:
+                await async_connect(user_input)
+            except AuthentificationFailed as error:
                 errors = {"base": "login_inccorect"}
-                _LOGGER.error("Error: %s", e)
-            except CozytouchException as e:
+                _LOGGER.error("Authentification Failed %s", error)
+            except CozytouchException as error:
                 errors = {"base": "parsing"}
-                _LOGGER.error("Error: %s", e)
+                _LOGGER.error("Cozytouch Exception %s", error)
 
             if "base" not in errors:
                 return self.async_create_entry(title="Cozytouch", data=user_input)
@@ -87,11 +80,7 @@ class CozytouchOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
-        return await self.async_step_user()
-
-    async def async_step_user(self, user_input=None):
-        """Handle a flow initialized by the user."""
-        OPTIONS_SCHEMA = vol.Schema(
+        options_schema = vol.Schema(
             {
                 vol.Required(CONF_COZYTOUCH_ACTUATOR, default=self._actuator): vol.In(
                     SENSOR_TYPES
@@ -102,4 +91,4 @@ class CozytouchOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        return self.async_show_form(step_id="user", data_schema=OPTIONS_SCHEMA)
+        self.async_show_form(step_id="user", data_schema=options_schema)
