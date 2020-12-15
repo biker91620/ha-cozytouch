@@ -72,21 +72,19 @@ async def async_setup_entry(hass, config_entry):
                 )
             },
         )
-
     try:
-        setup = await async_connect(hass, config_entry.data)
-        if setup is None:
-            return False
-    except CozytouchException:
+        api = await async_connect(config_entry.data)
+    except CozytouchException as error:
+        _LOGGER.error("Cozytouch Exception (%s)", error)
         return False
 
-    hass.data[DOMAIN][config_entry.entry_id] = {COZYTOUCH_DATAS: setup}
+    hass.data[DOMAIN][config_entry.entry_id] = {COZYTOUCH_DATAS: api}
     hass.data[DOMAIN][COZYTOUCH_ACTUATOR] = config_entry.options[
         CONF_COZYTOUCH_ACTUATOR
     ]
 
     device_registry = await dr.async_get_registry(hass)
-    for gateway in setup.data.get("gateways"):
+    for gateway in api.data.get("gateways"):
         device_registry.async_get_or_create(
             config_entry_id=config_entry.entry_id,
             identifiers={(DOMAIN, gateway["placeOID"]), (DOMAIN, gateway["gatewayId"])},
@@ -100,7 +98,15 @@ async def async_setup_entry(hass, config_entry):
             hass.config_entries.async_forward_entry_setup(config_entry, component)
         )
 
+    if not config_entry.update_listeners:
+        config_entry.add_update_listener(async_update_options)
+
     return True
+
+
+async def async_update_options(hass, config_entry):
+    """Update options."""
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 async def async_unload_entry(hass, config_entry):
@@ -119,20 +125,20 @@ async def async_unload_entry(hass, config_entry):
     return True
 
 
-async def async_connect(hass, parameters):
+async def async_connect(config):
     """Connect to cozytouch."""
+    cozytouch = CozytouchClient(
+        config[CONF_USERNAME],
+        config[CONF_PASSWORD],
+        config[CONF_TIMEOUT],
+    )
     try:
-        cozytouch = CozytouchClient(
-            parameters[CONF_USERNAME],
-            parameters[CONF_PASSWORD],
-            parameters[CONF_TIMEOUT],
-        )
         await cozytouch.connect()
         return await cozytouch.get_setup()
-    except AuthentificationFailed as e:
-        raise AuthentificationFailed(e)
-    except CozytouchException as e:
-        raise CozytouchException(e)
+    except AuthentificationFailed as error:
+        raise AuthentificationFailed from error
+    except CozytouchException as error:
+        raise CozytouchException from error
 
 
 class ClimateSchema:
