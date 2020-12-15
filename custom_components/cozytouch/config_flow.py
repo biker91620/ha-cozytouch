@@ -91,4 +91,4 @@ class CozytouchOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        self.async_show_form(step_id="user", data_schema=options_schema)
+        return self.async_show_form(step_id="init", data_schema=options_schema)
