@@ -73,7 +73,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             schema=BOILER_OPERATION_MODE,
         )
 
-    _LOGGER.info("Found {count} sensors".format(count=len(devices)))
+    _LOGGER.info("Found %i sensors", len(devices))
     async_add_entities(devices, True)
 
 
@@ -111,11 +111,11 @@ class CozyTouchTemperatureSensor(Entity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update sensor {name}".format(name=self.name))
+        _LOGGER.debug("Update sensor %s", self.name)
         try:
             await self.sensor.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)
 
     @property
     def device_info(self):
@@ -162,11 +162,11 @@ class CozyTouchElectricitySensor(Entity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update sensor {name}".format(name=self.name))
+        _LOGGER.debug("Update sensor %s", self.name)
         try:
             await self.sensor.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)
 
     @property
     def device_info(self):
@@ -240,8 +240,8 @@ class CozytouchBoiler(Entity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update boiler {name}".format(name=self.name))
+        _LOGGER.debug("Update boiler %s", self.name)
         try:
             await self.boiler.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)

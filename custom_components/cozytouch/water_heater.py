@@ -60,7 +60,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         elif water_heater.widget == DeviceType.APC_WATER_HEATER:
             devices.append(StandaloneCozytouchAPCWaterHeater(water_heater))
 
-    _LOGGER.info("Found {count} water heater".format(count=len(devices)))
+    _LOGGER.info("Found %i water heater", len(devices))
     async_add_entities(devices, True)
 
     async def async_service_away_mode(service):
@@ -308,12 +308,12 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
 
     async def async_set_away_mode(self, period):
         """Turn away on."""
-        _LOGGER.debug("Set away mode for {} days".format(period))
+        _LOGGER.debug("Set away mode for %i days", period)
         await self.water_heater.set_away_mode(period)
 
     async def async_set_boost_mode(self, period):
         """Turn away on."""
-        _LOGGER.debug("Set boost mode for {} days".format(period))
+        _LOGGER.debug("Set boost mode for %i days", period)
         await self.water_heater.set_boost_mode(period)
 
     async def async_turn_boost_mode_on(self):
@@ -338,11 +338,11 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update water heater {name}".format(name=self.name))
+        _LOGGER.debug("Update water heater %s", self.name)
         try:
             await self.water_heater.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)
 
 
 class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
@@ -541,7 +541,7 @@ class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
 
     async def async_set_away_mode(self, period):
         """Turn away on."""
-        _LOGGER.debug("Set away mode for {} days".format(period))
+        _LOGGER.debug("Set away mode for %i days", period)
         await self.water_heater.set_away_mode(period)
 
     async def async_turn_boost_mode_on(self):
@@ -566,8 +566,8 @@ class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update water heater {name}".format(name=self.name))
+        _LOGGER.debug("Update water heater %s", self.name)
         try:
             await self.water_heater.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)

@@ -26,7 +26,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         elif actuator == "i2g" and heater.widget == DeviceType.HEATER:
             devices.append(CozytouchSwitch(heater))
 
-    _LOGGER.info("Found {count} switch".format(count=len(devices)))
+    _LOGGER.info("Found %i switch", len(devices))
     async_add_entities(devices, True)
 
 
@@ -67,11 +67,11 @@ class CozytouchSwitch(SwitchEntity):
 
     async def async_update(self):
         """Fetch new state data for this heater."""
-        _LOGGER.debug("Update switch {name}".format(name=self.name))
+        _LOGGER.debug("Update switch %s", self.name)
         try:
             await self.heater.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)
 
     @property
     def device_info(self):

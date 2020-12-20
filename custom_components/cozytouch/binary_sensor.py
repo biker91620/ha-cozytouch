@@ -30,7 +30,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         ]:
             devices.append(CozytouchContactSensor(sensor, heater))
 
-    _LOGGER.info("Found {count} binary sensor".format(count=len(devices)))
+    _LOGGER.info("Found %i binary sensor", len(devices))
     async_add_entities(devices, True)
 
 
@@ -68,11 +68,11 @@ class CozytouchOccupancySensor(BinarySensorEntity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update binary sensor {name}".format(name=self.name))
+        _LOGGER.debug("Update binary sensor %s", self.name)
         try:
             await self.sensor.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)
 
     @property
     def device_info(self):
@@ -119,11 +119,11 @@ class CozytouchContactSensor(BinarySensorEntity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update binary sensor {name}".format(name=self.name))
+        _LOGGER.debug("Update binary sensor %s", self.name)
         try:
             await self.sensor.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)
 
     @property
     def device_info(self):

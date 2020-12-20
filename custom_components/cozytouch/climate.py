@@ -49,7 +49,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         elif climate.widget == DeviceType.APC_HEATING_ZONE:
             devices.append(CozytouchStandaloneThermostat(climate, ThermalState.HEAT))
 
-    _LOGGER.info("Found {count} thermostat".format(count=len(devices)))
+    _LOGGER.info("Found %i thermostat", len(devices))
     async_add_entities(devices, True)
 
 
@@ -233,9 +233,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
                     kwargs[ATTR_TARGET_TEMP_HIGH]
                 )
             _LOGGER.info(
-                "Set HIGH TEMP to {temp} {mode}".format(
-                    temp=kwargs[ATTR_TARGET_TEMP_HIGH], mode=self._mode
-                )
+                "Set HIGH TEMP to %s  %s", kwargs[ATTR_TARGET_TEMP_HIGH], self._mode
             )
         if ATTR_TARGET_TEMP_LOW in kwargs:
             if self.climate.widget == DeviceType.APC_HEATING_COOLING_ZONE:
@@ -245,9 +243,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
             else:
                 await self.climate.set_eco_temperature(kwargs[ATTR_TARGET_TEMP_LOW])
             _LOGGER.info(
-                "Set LOW TEMP to {temp} {mode}".format(
-                    temp=kwargs[ATTR_TARGET_TEMP_LOW], mode=self._mode
-                )
+                "Set LOW TEMP to %s %s", kwargs[ATTR_TARGET_TEMP_LOW], self._mode
             )
 
     async def async_set_hvac_mode(self, hvac_mode: str) -> None:
@@ -274,8 +270,8 @@ class CozytouchStandaloneThermostat(ClimateEntity):
 
     async def async_update(self):
         """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update thermostat {name}".format(name=self.name))
+        _LOGGER.debug("Update thermostat %s", self.name)
         try:
             await self.climate.update()
         except CozytouchException:
-            _LOGGER.error("Device data no retrieve {}".format(self.name))
+            _LOGGER.error("Device data no retrieve %s", self.name)
