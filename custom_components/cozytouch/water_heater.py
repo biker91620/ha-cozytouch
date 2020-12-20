@@ -68,18 +68,14 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         entity_id = service.data.get(ATTR_ENTITY_ID)
         for device in devices:
             if device.entity_id == entity_id:
-                await hass.async_add_executor_job(
-                    device.async_set_away_mode, service.data[ATTR_TIME_PERIOD]
-                )
+                await device.async_set_away_mode(service.data[ATTR_TIME_PERIOD])
 
     async def async_service_boost_mode(service):
         """Handle away mode service."""
         entity_id = service.data.get(ATTR_ENTITY_ID)
         for device in devices:
             if device.entity_id == entity_id:
-                await hass.async_add_executor_job(
-                    device.async_set_boost_mode, service.data[ATTR_TIME_PERIOD]
-                )
+                await device.async_set_boost_mode(service.data[ATTR_TIME_PERIOD])
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_AWAY_MODE, async_service_away_mode, schema=AWAY_MODE_SCHEMA

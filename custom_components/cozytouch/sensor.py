@@ -61,9 +61,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             entity_id = service.data.get(ATTR_ENTITY_ID)
             for device in devices:
                 if device.entity_id == entity_id:
-                    await hass.async_add_executor_job(
-                        device.async_set_operation_mode,
-                        service.data[ATTR_OPERATION_MODE],
+                    await device.async_set_operation_mode(
+                        service.data[ATTR_OPERATION_MODE]
                     )
 
         hass.services.async_register(
@@ -72,8 +71,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             async_service_operation_mode,
             schema=BOILER_OPERATION_MODE,
         )
-
-    _LOGGER.info("Found %i sensors", len(devices))
     async_add_entities(devices, True)
 
 
