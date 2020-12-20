@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
-
     devices = []
     for heater in datas.heaters:
         for sensor in [
@@ -29,8 +28,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             sensor for sensor in heater.sensors if sensor.widget == DeviceType.CONTACT
         ]:
             devices.append(CozytouchContactSensor(sensor, heater))
-
-    _LOGGER.info("Found %i binary sensor", len(devices))
     async_add_entities(devices, True)
 
 

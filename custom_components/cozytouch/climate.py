@@ -36,20 +36,16 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
     datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
-
     devices = []
     for heater in datas.heaters:
         if heater.widget == DeviceType.HEATER:
             devices.append(CozytouchStandaloneThermostat(heater))
-
     for climate in datas.climates:
         if climate.widget == DeviceType.APC_HEATING_COOLING_ZONE:
             devices.append(CozytouchStandaloneThermostat(climate, ThermalState.HEAT))
             devices.append(CozytouchStandaloneThermostat(climate, ThermalState.COOL))
         elif climate.widget == DeviceType.APC_HEATING_ZONE:
             devices.append(CozytouchStandaloneThermostat(climate, ThermalState.HEAT))
-
-    _LOGGER.info("Found %i thermostat", len(devices))
     async_add_entities(devices, True)
 
 
