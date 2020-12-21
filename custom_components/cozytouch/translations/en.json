@@ -15,7 +15,8 @@
 		},
 		"error": {
 			"login_inccorect": "User or password inccorect",
-			"unknown": "Unknown error occurred"
+			"parsing": "Server response not parsable",
+                        "unknown": "Unknown error occurred"
 		}
 	}
 }
