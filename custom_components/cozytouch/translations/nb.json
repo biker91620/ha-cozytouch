@@ -1,0 +1,21 @@
+{
+	"config": {
+		"title": "Cozytouch",
+		"step": {
+			"user": {
+				"title": "Legg til cozytouch's bridge",
+				"description": "Angi e-postadresse og passord",
+				"data": {
+					"username": "Brukernavn",
+					"password": "Passord",
+					"timeout": "Pause",
+					"model": "modell"
+				}
+			}
+		},
+		"error": {
+			"login_inccorect": "Feil bruker eller passord",
+			"unknown": "Det oppstod en ukjent feil"
+		}
+	}
+}
