@@ -4,26 +4,27 @@ import logging
 
 import voluptuous as vol
 from cozytouchpy import CozytouchClient
-from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from cozytouchpy.constant import DeviceType
+from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers import device_registry as dr
 
 from .const import (
     COMPONENTS,
-    COZYTOUCH_ACTUATOR,
     CONF_COZYTOUCH_ACTUATOR,
+    COZYTOUCH_ACTUATOR,
     COZYTOUCH_DATAS,
+    DEFAULT_COZYTOUCH_ACTUATOR,
     DEFAULT_TIMEOUT,
     DOMAIN,
-    SENSOR_TYPES,
-    DEFAULT_COZYTOUCH_ACTUATOR,
+    HVAC_MODE_LIST,
+    PRESET_MODE_LIST,
     SCHEMA_HEATER,
     SCHEMA_HEATINGCOOLINGZONE,
     SCHEMA_HEATINGZONE,
-    HVAC_MODE_LIST,
-    PRESET_MODE_LIST,
+    SENSOR_TYPES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,8 +76,7 @@ async def async_setup_entry(hass, config_entry):
     try:
         api = await async_connect(config_entry.data)
     except CozytouchException as error:
-        _LOGGER.error("Cozytouch Exception (%s)", error)
-        return False
+        PlatformNotReady from error
 
     hass.data[DOMAIN][config_entry.entry_id] = {COZYTOUCH_DATAS: api}
     hass.data[DOMAIN][COZYTOUCH_ACTUATOR] = config_entry.options[
