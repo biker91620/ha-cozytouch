@@ -18,10 +18,4 @@ There is currently support for the following device types within Home Assistant:
 The preferred way to setup the platform is by enabling the discovery component.
 Add your equipment via the Integration menu
 
-Otherwise, you can set it up manually in your `configuration.yaml` file:
-
-```yaml
-cozytouch:
-  username: cozytouch@ilove.com
-  password: cozytouch
-```
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=cozytouch)
