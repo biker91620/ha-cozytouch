@@ -4,8 +4,8 @@
     "config_flow": true,
     "documentation": "https://github.com/cyr-ius/hass-cozytouch",
     "issue_tracker": "https://github.com/cyr-ius/hass-cozytouch/issues",
-    "requirements": ["cozytouchpy==2.0.0"],
+    "requirements": ["cozytouchpy==3.1"],
     "dependencies": [],
     "codeowners": ["@biker91620", "@cyr-ius"],
-    "version": "1.6.2"
+    "version": "1.6.3"
 }

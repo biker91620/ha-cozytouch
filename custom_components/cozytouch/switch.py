@@ -1,37 +1,37 @@
 """Switch for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceType
 
 from homeassistant.components.switch import SwitchEntity
-
-from .const import CONF_COZYTOUCH_ACTUATOR, COZYTOUCH_DATAS, DOMAIN
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from .const import CONF_COZYTOUCH_ACTUATOR, COORDINATOR, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
-    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
     actuator = hass.data[DOMAIN][CONF_COZYTOUCH_ACTUATOR]
     devices = []
-    for heater in datas.heaters:
+    for device in coordinator.data.devices.values():
         if actuator == "all":
-            devices.append(CozytouchSwitch(heater))
-        elif actuator == "pass" and heater.widget == DeviceType.PILOT_WIRE_INTERFACE:
-            devices.append(CozytouchSwitch(heater))
-        elif actuator == "i2g" and heater.widget == DeviceType.HEATER:
-            devices.append(CozytouchSwitch(heater))
-    async_add_entities(devices, True)
+            devices.append(CozytouchSwitch(device, coordinator))
+        elif actuator == "pass" and device.widget == DeviceType.PILOT_WIRE_INTERFACE:
+            devices.append(CozytouchSwitch(device, coordinator))
+        elif actuator == "i2g" and device.widget == DeviceType.HEATER:
+            devices.append(CozytouchSwitch(device, coordinator))
+    async_add_entities(devices)
 
 
-class CozytouchSwitch(SwitchEntity):
+class CozytouchSwitch(CoordinatorEntity, SwitchEntity):
     """Header switch (on/off)."""
 
-    def __init__(self, heater):
+    def __init__(self, device, coordinator):
         """Initialize switch."""
-        self.heater = heater
+        self.heater = device
+        self.coordinator = coordinator
 
     @property
     def unique_id(self):
@@ -46,28 +46,12 @@ class CozytouchSwitch(SwitchEntity):
     @property
     def is_on(self):
         """Return true if switch is on."""
-        return self.heater.is_on
+        return self.coordinator.data.devices[self.unique_id].is_on
 
     @property
     def device_class(self):
         """Return the device class."""
         return "heat"
-
-    async def async_turn_on(self, **kwargs) -> None:
-        """Turn the entity on."""
-        await self.heater.turn_on()
-
-    async def async_turn_off(self, **kwargs):
-        """Turn the entity off."""
-        await self.heater.turn_off()
-
-    async def async_update(self):
-        """Fetch new state data for this heater."""
-        _LOGGER.debug("Update switch %s", self.name)
-        try:
-            await self.heater.update()
-        except CozytouchException:
-            _LOGGER.error("Device data no retrieve %s", self.name)
 
     @property
     def device_info(self):
@@ -78,3 +62,13 @@ class CozytouchSwitch(SwitchEntity):
             "manufacturer": "Cozytouch",
             "via_device": (DOMAIN, self.heater.data["placeOID"]),
         }
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Turn the entity on."""
+        await self.heater.turn_on()
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs):
+        """Turn the entity off."""
+        await self.heater.turn_off()
+        await self.coordinator.async_request_refresh()

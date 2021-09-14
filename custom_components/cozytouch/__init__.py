@@ -1,6 +1,7 @@
 """The cozytouch component."""
 import asyncio
 import logging
+from datetime import timedelta
 
 import voluptuous as vol
 from cozytouchpy import CozytouchClient
@@ -8,12 +9,13 @@ from cozytouchpy.constant import DeviceType
 from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
-from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     COMPONENTS,
     CONF_COZYTOUCH_ACTUATOR,
+    COORDINATOR,
     COZYTOUCH_ACTUATOR,
     COZYTOUCH_DATAS,
     DEFAULT_COZYTOUCH_ACTUATOR,
@@ -45,6 +47,8 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
+SCAN_INTERVAL = timedelta(seconds=60)
+
 
 async def async_setup(hass, config):
     """Load configuration for Cozytouch component."""
@@ -73,24 +77,38 @@ async def async_setup_entry(hass, config_entry):
                 )
             },
         )
-    try:
-        api = await async_connect(config_entry.data)
-    except CozytouchException as error:
-        PlatformNotReady from error
 
-    hass.data[DOMAIN][config_entry.entry_id] = {COZYTOUCH_DATAS: api}
+    async def async_fecth_datas():
+        return await async_connect(config_entry.data)
+
+    coordinator = DataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        name=DOMAIN,
+        update_method=async_fecth_datas,
+        update_interval=SCAN_INTERVAL,
+    )
+    await coordinator.async_config_entry_first_refresh()
+
+    hass.data[DOMAIN][config_entry.entry_id] = {
+        COZYTOUCH_DATAS: coordinator.data,
+        COORDINATOR: coordinator,
+    }
     hass.data[DOMAIN][COZYTOUCH_ACTUATOR] = config_entry.options[
         CONF_COZYTOUCH_ACTUATOR
     ]
 
     device_registry = await dr.async_get_registry(hass)
-    for gateway in api.data.get("gateways"):
+    for gateway in coordinator.data.gateways.values():
         device_registry.async_get_or_create(
             config_entry_id=config_entry.entry_id,
-            identifiers={(DOMAIN, gateway["placeOID"]), (DOMAIN, gateway["gatewayId"])},
+            identifiers={
+                (DOMAIN, gateway.data["placeOID"]),
+                (DOMAIN, gateway.data["gatewayId"]),
+            },
             manufacturer="Atlantic/Thermor",
             name="Cozytouch",
-            sw_version=gateway["connectivity"]["protocolVersion"],
+            sw_version=gateway.data["connectivity"]["protocolVersion"],
         )
 
     for component in COMPONENTS:

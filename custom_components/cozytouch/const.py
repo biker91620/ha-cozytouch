@@ -12,6 +12,7 @@ from homeassistant.components.climate.const import (
 LOGGER = logging.getLogger(__package__)
 
 DOMAIN = "cozytouch"
+COORDINATOR = "cozytouch_coordinator"
 COZYTOUCH_DATAS = "cozy_datas"
 COMPONENTS = ["climate", "switch", "water_heater", "binary_sensor", "sensor"]
 SENSOR_TYPES = ["all", "pass", "i2g"]

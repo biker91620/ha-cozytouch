@@ -1,9 +1,8 @@
 """Climate sensors for Cozytouch."""
 import logging
 
-from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceState, DeviceType, ThermalState
-
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
@@ -18,7 +17,7 @@ from homeassistant.const import TEMP_CELSIUS
 from . import ClimateSchema
 from .const import (
     COZY_TO_PRESET_MODE,
-    COZYTOUCH_DATAS,
+    COORDINATOR,
     DOMAIN,
     HEATER_TO_HVAC_MODE,
     HEATING_TO_HVAC_MODE,
@@ -35,33 +34,40 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set the sensor platform."""
-    datas = hass.data[DOMAIN][config_entry.entry_id][COZYTOUCH_DATAS]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
     devices = []
-    for heater in datas.heaters:
-        if heater.widget == DeviceType.HEATER:
-            devices.append(CozytouchStandaloneThermostat(heater))
-    for climate in datas.climates:
-        if climate.widget == DeviceType.APC_HEATING_COOLING_ZONE:
-            devices.append(CozytouchStandaloneThermostat(climate, ThermalState.HEAT))
-            devices.append(CozytouchStandaloneThermostat(climate, ThermalState.COOL))
-        elif climate.widget == DeviceType.APC_HEATING_ZONE:
-            devices.append(CozytouchStandaloneThermostat(climate, ThermalState.HEAT))
-    async_add_entities(devices, True)
+    for device in coordinator.data.devices.values():
+        if device.widget == DeviceType.HEATER:
+            devices.append(CozytouchStandaloneThermostat(device, coordinator))
+
+        if device.widget == DeviceType.APC_HEATING_COOLING_ZONE:
+            devices.append(
+                CozytouchStandaloneThermostat(device, coordinator, ThermalState.HEAT)
+            )
+            devices.append(
+                CozytouchStandaloneThermostat(device, coordinator, ThermalState.COOL)
+            )
+        elif device.widget == DeviceType.APC_HEATING_ZONE:
+            devices.append(
+                CozytouchStandaloneThermostat(device, coordinator, ThermalState.HEAT)
+            )
+    async_add_entities(devices)
 
 
-class CozytouchStandaloneThermostat(ClimateEntity):
+class CozytouchStandaloneThermostat(CoordinatorEntity, ClimateEntity):
     """Representation a thermostat."""
 
-    def __init__(self, climate, mode=None):
+    def __init__(self, device, coordinator, mode=None):
         """Initialize the sensor."""
-        self.climate = climate
+        self.coordinator = coordinator
+        self.climate = device
         self._mode = mode
         self._support_flags = None
         self._state = None
         self._target_temperature = None
         self._away = None
         self.__load_features()
-        self._schema = ClimateSchema(climate.widget)
+        self._schema = ClimateSchema(self.climate .widget)
 
     def __set_support_flags(self, flag):
         self._support_flags = (
@@ -130,7 +136,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     @property
     def current_temperature(self):
         """Return the current temperature."""
-        return self.climate.temperature
+        return self.coordinator.data.devices[self.unique_id].temperature
 
     @property
     def device_info(self):
@@ -150,21 +156,21 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     @property
     def target_temperature(self):
         """Return the high temperature."""
-        return self.climate.target_temperature
+        return self.coordinator.data.devices[self.unique_id].target_temperature
 
     @property
     def target_temperature_high(self):
         """Return the high temperature."""
         if self._mode == ThermalState.COOL:
-            return self.climate.target_comfort_cooling_temperature
-        return self.climate.target_comfort_temperature
+            return self.coordinator.data.devices[self.unique_id].target_comfort_cooling_temperature
+        return self.coordinator.data.devices[self.unique_id].target_comfort_temperature
 
     @property
     def target_temperature_low(self):
         """Return the low temperature."""
         if self._mode == ThermalState.COOL:
-            return self.climate.target_eco_cooling_temperature
-        return self.climate.target_eco_temperature
+            return self.coordinator.data.devices[self.unique_id].target_eco_cooling_temperature
+        return self.coordinator.data.devices[self.unique_id].target_eco_temperature
 
     @property
     def hvac_mode(self):
@@ -184,14 +190,14 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     @property
     def is_away_mode_on(self):
         """Return true if away mode is on."""
-        return self.climate.is_away
+        return self.coordinator.data.devices[self.unique_id].is_away
 
     @property
     def preset_mode(self):
         """Return the current preset mode."""
-        preset = self.climate.preset_mode
+        preset = self.coordinator.data.devices[self.unique_id].preset_mode
         if self._mode == ThermalState.COOL:
-            preset = self.climate.preset_cooling_mode
+            preset = self.coordinator.data.devices[self.unique_id].preset_cooling_mode
         return COZY_TO_PRESET_MODE[preset]
 
     @property
@@ -212,10 +218,12 @@ class CozytouchStandaloneThermostat(ClimateEntity):
     async def async_turn_away_mode_on(self):
         """Turn away on."""
         await self.climate.turn_away_mode_on()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_away_mode_off(self):
         """Turn away off."""
         await self.climate.turn_away_mode_off()
+        await self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -241,6 +249,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
             _LOGGER.info(
                 "Set LOW TEMP to %s %s", kwargs[ATTR_TARGET_TEMP_LOW], self._mode
             )
+        await self.coordinator.async_request_refresh()
 
     async def async_set_hvac_mode(self, hvac_mode: str) -> None:
         """Set new target hvac mode. HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_OFF."""
@@ -254,6 +263,7 @@ class CozytouchStandaloneThermostat(ClimateEntity):
             await self.climate.set_operating_mode(
                 HVAC_MODE_TO_HEATINGCOOLING[hvac_mode]
             )
+        await self.coordinator.async_request_refresh()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode. PRESET_ECO, PRESET_COMFORT."""
@@ -263,11 +273,4 @@ class CozytouchStandaloneThermostat(ClimateEntity):
             )
         else:
             await self.climate.set_preset_mode(PRESET_MODE_TO_COZY[preset_mode])
-
-    async def async_update(self):
-        """Fetch new state data for this sensor."""
-        _LOGGER.debug("Update thermostat %s", self.name)
-        try:
-            await self.climate.update()
-        except CozytouchException:
-            _LOGGER.error("Device data no retrieve %s", self.name)
+        await self.coordinator.async_request_refresh()
