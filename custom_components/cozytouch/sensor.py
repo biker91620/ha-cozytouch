@@ -6,7 +6,7 @@ from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceState, DeviceType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.const import ATTR_ENTITY_ID, ENERGY_KILO_WATT_HOUR
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
@@ -20,7 +20,6 @@ from homeassistant.components.sensor import (
 from .const import (
     ATTR_OPERATION_MODE,
     DOMAIN,
-    KW_UNIT,
     SERVICE_SET_OPERATION_MODE,
     COORDINATOR,
 )
@@ -152,7 +151,7 @@ class CozyTouchElectricitySensor(CozyTouchSensor):
     @property
     def native_unit_of_measurement(self):
         """Return the unit of measurement."""
-        return KW_UNIT
+        return ENERGY_KILO_WATT_HOUR
 
 
 class CozytouchBoiler(Entity):

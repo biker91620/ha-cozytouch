@@ -2,12 +2,12 @@
 import logging
 
 import voluptuous as vol
+from cozytouchpy import CozytouchClient
 from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
 from homeassistant.core import callback
 
-from . import async_connect
 from .const import (
     CONF_COZYTOUCH_ACTUATOR,
     DEFAULT_COZYTOUCH_ACTUATOR,
@@ -52,13 +52,16 @@ class CozytouchFlowHandler(config_entries.ConfigFlow):
         errors = {}
         if user_input is not None:
             try:
-                await async_connect(user_input)
-            except AuthentificationFailed as error:
+                cozytouch = CozytouchClient(
+                    user_input[CONF_USERNAME],
+                    user_input[CONF_PASSWORD],
+                    user_input[CONF_TIMEOUT],
+                )
+                await cozytouch.connect()
+            except AuthentificationFailed:
                 errors = {"base": "login_inccorect"}
-                _LOGGER.error("Authentification Failed %s", error)
-            except CozytouchException as error:
+            except CozytouchException:
                 errors = {"base": "parsing"}
-                _LOGGER.error("Cozytouch Exception %s", error)
 
             if "base" not in errors:
                 return self.async_create_entry(title="Cozytouch", data=user_input)

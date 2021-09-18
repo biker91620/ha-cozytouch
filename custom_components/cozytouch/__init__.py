@@ -79,7 +79,20 @@ async def async_setup_entry(hass, config_entry):
         )
 
     async def async_fecth_datas():
-        return await async_connect(config_entry.data)
+        cozytouch = CozytouchClient(
+            config_entry.data[CONF_USERNAME],
+            config_entry.data[CONF_PASSWORD],
+            config_entry.data[CONF_TIMEOUT],
+        )
+        try:
+            await cozytouch.connect()
+            return await cozytouch.get_setup()
+        except AuthentificationFailed as error:
+            _LOGGER.error("Authentification failed")
+            raise AuthentificationFailed(error) from error
+        except CozytouchException as error:
+            _LOGGER.error("Cannot connect  to api")
+            raise CozytouchException(error) from error
 
     coordinator = DataUpdateCoordinator(
         hass,
@@ -154,8 +167,10 @@ async def async_connect(config):
         await cozytouch.connect()
         return await cozytouch.get_setup()
     except AuthentificationFailed as error:
+        _LOGGER.error("Authentification failed")
         raise AuthentificationFailed from error
     except CozytouchException as error:
+        _LOGGER.error("Cannot connect  to api")
         raise CozytouchException from error
 
 
