@@ -6,7 +6,7 @@
 				"title": "Add cozytouch's bridge",
 				"description": "Please set your email and password",
 				"data": {
-					"username": "Username",
+					"username": "Mail",
 					"password": "Password",
 					"timeout": "Timeout",
 					"model": "model"

@@ -6,10 +6,10 @@
                 "title": "Add cozytouch's bridge",
                 "description": "Please set your email and password",
                 "data": {
-                    "username": "[%key:common::config_flow::data::username%]",
-                    "password": "[%key:common::config_flow::data::password%]",
-                    "timeout": "[%key:common::config_flow::data::timeout%]",
-                    "model": "[%key:common::config_flow::data::model%]"
+                    "username": "mail",
+                    "password": "password",
+                    "timeout": "timeout",
+                    "model": "model"
                 }
             }
         },
