@@ -13,7 +13,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
-    COMPONENTS,
+    PLATFORMS,
     CONF_COZYTOUCH_ACTUATOR,
     COORDINATOR,
     COZYTOUCH_ACTUATOR,
@@ -124,10 +124,7 @@ async def async_setup_entry(hass, config_entry):
             sw_version=gateway.data["connectivity"]["protocolVersion"],
         )
 
-    for component in COMPONENTS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, component)
-        )
+    hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
 
     if not config_entry.update_listeners:
         config_entry.add_update_listener(async_update_options)
@@ -142,14 +139,7 @@ async def async_update_options(hass, config_entry):
 
 async def async_unload_entry(hass, config_entry):
     """Unload a config entry."""
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(config_entry, component)
-                for component in COMPONENTS
-            ]
-        )
-    )
+    unload_ok = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(config_entry.entry_id)
 
