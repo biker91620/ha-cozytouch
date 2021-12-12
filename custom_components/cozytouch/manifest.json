@@ -7,5 +7,5 @@
     "requirements": ["cozytouchpy==3.1"],
     "dependencies": [],
     "codeowners": ["@biker91620", "@cyr-ius"],
-    "version": "1.6.4"
+    "version": "1.6.5"
 }

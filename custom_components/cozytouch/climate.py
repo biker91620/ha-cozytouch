@@ -206,7 +206,7 @@ class CozytouchStandaloneThermostat(CoordinatorEntity, ClimateEntity):
         return self._schema.preset_list()
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Device attributes."""
         return {
             "preset": self.climate.preset_mode,

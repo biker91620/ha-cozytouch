@@ -195,7 +195,7 @@ class CozytouchBoiler(Entity):
         }
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the device state attributes."""
         datas = self.coordinator.data.devices[self.unique_id]
         attributes = {
