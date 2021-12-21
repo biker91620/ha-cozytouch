@@ -8,7 +8,6 @@
 				"data": {
 					"username": "Mail",
 					"password": "Password",
-					"timeout": "Timeout",
 					"model": "model"
 				}
 			}

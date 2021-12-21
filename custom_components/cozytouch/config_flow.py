@@ -2,16 +2,16 @@
 import logging
 
 import voluptuous as vol
-from cozytouchpy import CozytouchClient
+from cozytouchpy.client import CozytouchClient
+from cozytouchpy.constant import SUPPORTED_SERVERS
 from cozytouchpy.exception import AuthentificationFailed, CozytouchException
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 
 from .const import (
     CONF_COZYTOUCH_ACTUATOR,
     DEFAULT_COZYTOUCH_ACTUATOR,
-    DEFAULT_TIMEOUT,
     DOMAIN,
     SENSOR_TYPES,
 )
@@ -20,7 +20,6 @@ DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
-        vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): int,
         vol.Optional(
             CONF_COZYTOUCH_ACTUATOR, default=DEFAULT_COZYTOUCH_ACTUATOR
         ): vol.In(SENSOR_TYPES),
@@ -55,7 +54,7 @@ class CozytouchFlowHandler(config_entries.ConfigFlow):
                 cozytouch = CozytouchClient(
                     user_input[CONF_USERNAME],
                     user_input[CONF_PASSWORD],
-                    user_input[CONF_TIMEOUT],
+                    SUPPORTED_SERVERS["atlantic_cozytouch"],
                 )
                 await cozytouch.connect()
             except AuthentificationFailed:

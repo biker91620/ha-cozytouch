@@ -1,27 +1,24 @@
 """The cozytouch component."""
-import asyncio
 import logging
 from datetime import timedelta
 
 import voluptuous as vol
 from cozytouchpy import CozytouchClient
-from cozytouchpy.constant import DeviceType
-from cozytouchpy.exception import AuthentificationFailed, CozytouchException
+from cozytouchpy.constant import SUPPORTED_SERVERS, DeviceType
 from homeassistant.config_entries import SOURCE_IMPORT
-from homeassistant.const import CONF_PASSWORD, CONF_TIMEOUT, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from .coordinator import CozytouchDataUpdateCoordinator
 from .const import (
-    PLATFORMS,
     CONF_COZYTOUCH_ACTUATOR,
     COORDINATOR,
     COZYTOUCH_ACTUATOR,
     COZYTOUCH_DATAS,
     DEFAULT_COZYTOUCH_ACTUATOR,
-    DEFAULT_TIMEOUT,
     DOMAIN,
     HVAC_MODE_LIST,
+    PLATFORMS,
     PRESET_MODE_LIST,
     SCHEMA_HEATER,
     SCHEMA_HEATINGCOOLINGZONE,
@@ -37,7 +34,6 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): str,
                 vol.Required(CONF_PASSWORD): str,
-                vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): int,
                 vol.Optional(
                     CONF_COZYTOUCH_ACTUATOR, default=DEFAULT_COZYTOUCH_ACTUATOR
                 ): vol.In(SENSOR_TYPES),
@@ -78,28 +74,22 @@ async def async_setup_entry(hass, config_entry):
             },
         )
 
-    async def async_fecth_datas():
-        cozytouch = CozytouchClient(
-            config_entry.data[CONF_USERNAME],
-            config_entry.data[CONF_PASSWORD],
-            config_entry.data[CONF_TIMEOUT],
-        )
-        try:
-            await cozytouch.connect()
-            return await cozytouch.get_setup()
-        except AuthentificationFailed as error:
-            _LOGGER.error("Authentification failed")
-            raise AuthentificationFailed(error) from error
-        except CozytouchException as error:
-            _LOGGER.error("Cannot connect  to api")
-            raise CozytouchException(error) from error
+    # To allow users with multiple accounts/hubs, we create a new session so they have separate cookies
+    session = async_create_clientsession(hass)
+    client = CozytouchClient(
+        username=config_entry.data[CONF_USERNAME],
+        password=config_entry.data[CONF_PASSWORD],
+        server=SUPPORTED_SERVERS["atlantic_cozytouch"],
+        session=session,
+    )
 
-    coordinator = DataUpdateCoordinator(
+    coordinator = CozytouchDataUpdateCoordinator(
         hass,
         _LOGGER,
         name=DOMAIN,
-        update_method=async_fecth_datas,
+        client=client,
         update_interval=SCAN_INTERVAL,
+        config_entry_id=config_entry.entry_id,
     )
     await coordinator.async_config_entry_first_refresh()
 
@@ -139,29 +129,13 @@ async def async_update_options(hass, config_entry):
 
 async def async_unload_entry(hass, config_entry):
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        config_entry, PLATFORMS
+    )
     if unload_ok:
         hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return True
-
-
-async def async_connect(config):
-    """Connect to cozytouch."""
-    cozytouch = CozytouchClient(
-        config[CONF_USERNAME],
-        config[CONF_PASSWORD],
-        config[CONF_TIMEOUT],
-    )
-    try:
-        await cozytouch.connect()
-        return await cozytouch.get_setup()
-    except AuthentificationFailed as error:
-        _LOGGER.error("Authentification failed")
-        raise AuthentificationFailed from error
-    except CozytouchException as error:
-        _LOGGER.error("Cannot connect  to api")
-        raise CozytouchException from error
 
 
 class ClimateSchema:

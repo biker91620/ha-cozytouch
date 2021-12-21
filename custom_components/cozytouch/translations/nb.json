@@ -8,7 +8,6 @@
 				"data": {
 					"username": "Brukernavn",
 					"password": "Passord",
-					"timeout": "Pause",
 					"model": "modell"
 				}
 			}
