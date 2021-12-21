@@ -1,33 +1,22 @@
 """Climate sensors for Cozytouch."""
 import logging
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from cozytouchpy.constant import DeviceState, DeviceType
-
-import homeassistant.helpers.config_validation as cv
-from homeassistant.components.water_heater import (
-    ATTR_TEMPERATURE,
-    STATE_ECO,
-    STATE_ON,
-    STATE_OFF,
-    SUPPORT_AWAY_MODE,
-    SUPPORT_OPERATION_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
-    WaterHeaterEntity,
-)
+from homeassistant.components.water_heater import (ATTR_TEMPERATURE, STATE_ECO,
+                                                   STATE_OFF, STATE_ON,
+                                                   SUPPORT_AWAY_MODE,
+                                                   SUPPORT_OPERATION_MODE,
+                                                   SUPPORT_TARGET_TEMPERATURE,
+                                                   WaterHeaterEntity)
 from homeassistant.const import ATTR_ENTITY_ID, TEMP_CELSIUS
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    ATTR_TIME_PERIOD,
-    COORDINATOR,
-    DOMAIN,
-    SERVICE_SET_AWAY_MODE,
-    SERVICE_SET_BOOST_MODE,
-    STATE_AUTO,
-    STATE_MANUEL,
-    STATE_COMFORT,
-    STATE_EXTERNAL,
-)
+from .const import (ATTR_TIME_PERIOD, COORDINATOR, DOMAIN,
+                    SERVICE_SET_AWAY_MODE, SERVICE_SET_BOOST_MODE, STATE_AUTO,
+                    STATE_COMFORT, STATE_EXTERNAL, STATE_MANUEL)
+from .coordinator import CozytouchDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,8 +74,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     )
 
 
-class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
+class StandaloneCozytouchWaterHeater(CoordinatorEntity, WaterHeaterEntity):
     """Representation a Water Heater."""
+
+    coordinator: CozytouchDataUpdateCoordinator
 
     COZY_TO_HASS_STATE = {
         "manualEcoActive": STATE_ECO,
@@ -168,7 +159,9 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
     @property
     def current_operation(self):
         """Return current operation ie. eco, electric, performance, ..."""
-        return self.COZY_TO_HASS_STATE[self.coordinator.data.devices[self.unique_id].operating_mode]
+        return self.COZY_TO_HASS_STATE[
+            self.coordinator.data.devices[self.unique_id].operating_mode
+        ]
 
     @property
     def operation_list(self):
@@ -339,8 +332,10 @@ class StandaloneCozytouchWaterHeater(WaterHeaterEntity):
         await self.coordinator.async_request_refresh()
 
 
-class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
+class StandaloneCozytouchAPCWaterHeater(CoordinatorEntity, WaterHeaterEntity):
     """Representation a Water Heater."""
+
+    coordinator: CozytouchDataUpdateCoordinator
 
     COZY_TO_HASS_STATE = {
         "eco": STATE_ECO,
@@ -432,7 +427,9 @@ class StandaloneCozytouchAPCWaterHeater(WaterHeaterEntity):
     @property
     def current_operation(self):
         """Return current operation ie. eco, electric, performance, ..."""
-        return self.COZY_TO_HASS_STATE[self.coordinator.data.devices[self.unique_id].operating_mode]
+        return self.COZY_TO_HASS_STATE[
+            self.coordinator.data.devices[self.unique_id].operating_mode
+        ]
 
     @property
     def operation_list(self):

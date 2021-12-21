@@ -2,14 +2,15 @@
 import logging
 
 from cozytouchpy.constant import DeviceType
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
-    DEVICE_CLASS_WINDOW,
     DEVICE_CLASS_OCCUPANCY,
+    DEVICE_CLASS_WINDOW,
+    BinarySensorEntity,
 )
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, COORDINATOR
+from .const import COORDINATOR, DOMAIN
+from .coordinator import CozytouchDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +31,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class CozytouchBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Generic Binarysensor."""
+
+    coordinator: CozytouchDataUpdateCoordinator
 
     def __init__(self, device, coordinator):
         """Initialize occupancy sensor."""

@@ -1,28 +1,24 @@
 """Sensors for Cozytouch."""
 import logging
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from cozytouchpy import CozytouchException
 from cozytouchpy.constant import DeviceState, DeviceType
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-import homeassistant.helpers.config_validation as cv
-from homeassistant.const import ATTR_ENTITY_ID, ENERGY_KILO_WATT_HOUR
-from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import (
+    DEVICE_CLASS_ENERGY,
+    DEVICE_CLASS_TEMPERATURE,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
-    SensorEntity,
-    DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
-    DEVICE_CLASS_ENERGY,
+    SensorEntity,
 )
+from homeassistant.const import ATTR_ENTITY_ID, ENERGY_KILO_WATT_HOUR
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    ATTR_OPERATION_MODE,
-    DOMAIN,
-    SERVICE_SET_OPERATION_MODE,
-    COORDINATOR,
-)
+from .const import ATTR_OPERATION_MODE, COORDINATOR, DOMAIN, SERVICE_SET_OPERATION_MODE
+from .coordinator import CozytouchDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +68,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class CozyTouchSensor(CoordinatorEntity, SensorEntity):
     """Representation of a temperature sensor."""
+
+    coordinator: CozytouchDataUpdateCoordinator
 
     def __init__(self, device, coordinator):
         """Initialize temperature sensor."""

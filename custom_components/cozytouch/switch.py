@@ -2,10 +2,11 @@
 import logging
 
 from cozytouchpy.constant import DeviceType
-
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import CONF_COZYTOUCH_ACTUATOR, COORDINATOR, DOMAIN
+from .coordinator import CozytouchDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,6 +28,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class CozytouchSwitch(CoordinatorEntity, SwitchEntity):
     """Header switch (on/off)."""
+
+    coordinator: CozytouchDataUpdateCoordinator
 
     def __init__(self, device, coordinator):
         """Initialize switch."""

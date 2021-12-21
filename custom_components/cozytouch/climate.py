@@ -2,7 +2,6 @@
 import logging
 
 from cozytouchpy.constant import DeviceState, DeviceType, ThermalState
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
@@ -11,13 +10,13 @@ from homeassistant.components.climate.const import (
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_TARGET_TEMPERATURE_RANGE,
 )
-
 from homeassistant.const import TEMP_CELSIUS
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ClimateSchema
 from .const import (
-    COZY_TO_PRESET_MODE,
     COORDINATOR,
+    COZY_TO_PRESET_MODE,
     DOMAIN,
     HEATER_TO_HVAC_MODE,
     HEATING_TO_HVAC_MODE,
@@ -28,6 +27,7 @@ from .const import (
     HVAC_MODE_TO_HEATINGCOOLING,
     PRESET_MODE_TO_COZY,
 )
+from .coordinator import CozytouchDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,6 +57,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class CozytouchStandaloneThermostat(CoordinatorEntity, ClimateEntity):
     """Representation a thermostat."""
 
+    coordinator: CozytouchDataUpdateCoordinator
+
     def __init__(self, device, coordinator, mode=None):
         """Initialize the sensor."""
         self.coordinator = coordinator
@@ -67,7 +69,7 @@ class CozytouchStandaloneThermostat(CoordinatorEntity, ClimateEntity):
         self._target_temperature = None
         self._away = None
         self.__load_features()
-        self._schema = ClimateSchema(self.climate .widget)
+        self._schema = ClimateSchema(self.climate.widget)
 
     def __set_support_flags(self, flag):
         self._support_flags = (
@@ -162,14 +164,18 @@ class CozytouchStandaloneThermostat(CoordinatorEntity, ClimateEntity):
     def target_temperature_high(self):
         """Return the high temperature."""
         if self._mode == ThermalState.COOL:
-            return self.coordinator.data.devices[self.unique_id].target_comfort_cooling_temperature
+            return self.coordinator.data.devices[
+                self.unique_id
+            ].target_comfort_cooling_temperature
         return self.coordinator.data.devices[self.unique_id].target_comfort_temperature
 
     @property
     def target_temperature_low(self):
         """Return the low temperature."""
         if self._mode == ThermalState.COOL:
-            return self.coordinator.data.devices[self.unique_id].target_eco_cooling_temperature
+            return self.coordinator.data.devices[
+                self.unique_id
+            ].target_eco_cooling_temperature
         return self.coordinator.data.devices[self.unique_id].target_eco_temperature
 
     @property
