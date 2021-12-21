@@ -68,26 +68,20 @@ class CozytouchBinarySensor(CoordinatorEntity, BinarySensorEntity):
 class CozytouchOccupancySensor(CozytouchBinarySensor):
     """Occupancy sensor (present/not present)."""
 
+    _attr_device_class = DEVICE_CLASS_OCCUPANCY
+
     @property
     def is_on(self):
         """Return true if area is occupied."""
         return self.coordinator.data.devices[self.unique_id].is_occupied
 
-    @property
-    def device_class(self):
-        """Return the device class."""
-        return DEVICE_CLASS_OCCUPANCY
-
 
 class CozytouchContactSensor(CozytouchBinarySensor):
     """Occupancy sensor (present/not present)."""
+
+    _attr_device_class = DEVICE_CLASS_WINDOW
 
     @property
     def is_on(self):
         """Return true if contact is opened."""
         return self.coordinator.data.devices[self.unique_id].is_opened
-
-    @property
-    def device_class(self):
-        """Return the device class."""
-        return DEVICE_CLASS_WINDOW
