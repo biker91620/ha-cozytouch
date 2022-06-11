@@ -61,7 +61,6 @@ PRESET_MODE_TO_COZY = {
     PRESET_INTERNAL: "internalScheduling",
     PRESET_MANU: "manu",
     PRESET_SECURED: "secured",
-    PRESET_SECURED: "secured",
     PRESET_STOP: "stop",
 }
 
