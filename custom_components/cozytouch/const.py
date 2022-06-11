@@ -73,7 +73,7 @@ COZY_TO_PRESET_MODE = {
     "comfort": PRESET_COMFORT,
     "eco": PRESET_ECO,
     "externalScheduling": PRESET_EXTERNAL,
-    "frostprection": PRESET_FROSTPROTECTION,
+    "frostprotection": PRESET_FROSTPROTECTION,
     "internalScheduling": PRESET_INTERNAL,
     "manu": PRESET_MANU,
     "secured": PRESET_SECURED,
