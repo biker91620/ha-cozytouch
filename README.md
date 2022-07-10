@@ -1,3 +1,6 @@
+THIS REPOSITORY HAS BEEN ARCHIVED. PLEASE SEE 
+[iMicknl plugin](https://github.com/iMicknl/ha-tahoma)
+
 # Cozytouch
 This a *custom component* for [Home Assistant](https://www.home-assistant.io/). 
 
